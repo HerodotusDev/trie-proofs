@@ -1,9 +1,11 @@
-use alloy_consensus::{SignableTransaction, TxEip1559, TxEip2930, TxEip4844, TxEnvelope, TxLegacy, TxType};
-use alloy_rpc_types::Transaction;
+use crate::{Error, Field};
+use alloy_consensus::{
+    SignableTransaction, TxEip1559, TxEip2930, TxEip4844, TxEnvelope, TxLegacy, TxType,
+};
 use alloy_eips::eip2930::AccessList;
 use alloy_eips::eip2930::AccessListItem;
 use alloy_primitives::{Parity, Signature, TxKind, U64};
-use crate::{Error, Field};
+use alloy_rpc_types::Transaction;
 
 #[derive(Debug, Clone)]
 pub struct ConsensusTx(pub TxEnvelope);
@@ -13,21 +15,29 @@ impl TryFrom<RpcTx> for ConsensusTx {
     type Error = Error;
     fn try_from(tx: RpcTx) -> Result<ConsensusTx, Error> {
         let chain_id = tx.chain_id();
-        let nonce: u64 = tx.0.nonce.try_into().map_err(|_| Error::ConversionError(Field::Nonce))?;
-        let gas_limit: u64 = tx.0.gas.try_into().map_err(|_| Error::ConversionError(Field::GasLimit))?;
+        let nonce: u64 =
+            tx.0.nonce
+                .try_into()
+                .map_err(|_| Error::ConversionError(Field::Nonce))?;
+        let gas_limit: u64 =
+            tx.0.gas
+                .try_into()
+                .map_err(|_| Error::ConversionError(Field::GasLimit))?;
         let to = tx.to();
         let value = tx.0.value;
-        let input = tx.0.input.clone().try_into().map_err(|_| Error::ConversionError(Field::Input))?;
+        let input = tx.0.input.clone();
         match &tx.version()? {
             TxType::Legacy => {
                 let gas_price: u128 = if let Some(gas_price) = tx.0.gas_price {
-                    gas_price.try_into().map_err(|_| Error::ConversionError(Field::GasPrice))?
+                    gas_price
+                        .try_into()
+                        .map_err(|_| Error::ConversionError(Field::GasPrice))?
                 } else {
                     0
                 };
 
                 let res = TxLegacy {
-                    chain_id: chain_id,
+                    chain_id,
                     nonce,
                     gas_price,
                     gas_limit,
@@ -35,11 +45,13 @@ impl TryFrom<RpcTx> for ConsensusTx {
                     value,
                     input,
                 };
-                return Ok(ConsensusTx(res.into_signed(tx.signature()?).into()))
-            },
+                Ok(ConsensusTx(res.into_signed(tx.signature()?).into()))
+            }
             TxType::Eip2930 => {
                 let gas_price: u128 = if let Some(gas_price) = tx.0.gas_price {
-                    gas_price.try_into().map_err(|_| Error::ConversionError(Field::GasPrice))?
+                    gas_price
+                        .try_into()
+                        .map_err(|_| Error::ConversionError(Field::GasPrice))?
                 } else {
                     0
                 };
@@ -54,8 +66,8 @@ impl TryFrom<RpcTx> for ConsensusTx {
                     input,
                     access_list: tx.access_list()?,
                 };
-                return Ok(ConsensusTx(res.into_signed(tx.signature()?).into()))
-            },
+                Ok(ConsensusTx(res.into_signed(tx.signature()?).into()))
+            }
             TxType::Eip1559 => {
                 let max_fee_per_gas = tx.max_fee_per_gas()?;
                 let max_priority_fee_per_gas = tx.max_priority_fee_per_gas()?;
@@ -70,8 +82,8 @@ impl TryFrom<RpcTx> for ConsensusTx {
                     max_fee_per_gas,
                     max_priority_fee_per_gas,
                 };
-                return Ok(ConsensusTx(res.into_signed(tx.signature()?).into()))
-            },
+                Ok(ConsensusTx(res.into_signed(tx.signature()?).into()))
+            }
             TxType::Eip4844 => {
                 let max_fee_per_gas = tx.max_fee_per_gas()?;
                 let max_priority_fee_per_gas = tx.max_priority_fee_per_gas()?;
@@ -90,7 +102,7 @@ impl TryFrom<RpcTx> for ConsensusTx {
                     max_fee_per_blob_gas,
                     blob_versioned_hashes: tx.0.blob_versioned_hashes.clone(),
                 };
-                return Ok(ConsensusTx(res.into_signed(tx.signature()?).into()))
+                Ok(ConsensusTx(res.into_signed(tx.signature()?).into()))
             }
         }
     }
@@ -98,11 +110,10 @@ impl TryFrom<RpcTx> for ConsensusTx {
 
 impl RpcTx {
     fn chain_id(&self) -> Option<u64> {
-        if let Some(chain_id) = &self.0.chain_id {
-           Some(chain_id.try_into().unwrap())
-        } else {
-           None
-        }
+        self.0
+            .chain_id
+            .as_ref()
+            .map(|chain_id| chain_id.try_into().unwrap())
     }
 
     fn to(&self) -> TxKind {
@@ -118,13 +129,15 @@ impl RpcTx {
             Some(tx_type) if tx_type == &U64::from(1) => Ok(TxType::Eip2930),
             Some(tx_type) if tx_type == &U64::from(2) => Ok(TxType::Eip1559),
             Some(tx_type) if tx_type == &U64::from(3) => Ok(TxType::Eip4844),
-            _ => return Err(Error::InvalidTxVersion)
+            _ => Err(Error::InvalidTxVersion),
         }
     }
 
     fn max_fee_per_gas(&self) -> Result<u128, Error> {
         if let Some(value) = &self.0.max_fee_per_gas {
-            Ok(value.try_into().map_err(|_| Error::ConversionError(Field::MaxFeePerGas))?)
+            Ok(value
+                .try_into()
+                .map_err(|_| Error::ConversionError(Field::MaxFeePerGas))?)
         } else {
             Ok(0)
         }
@@ -132,7 +145,9 @@ impl RpcTx {
 
     fn max_priority_fee_per_gas(&self) -> Result<u128, Error> {
         if let Some(value) = &self.0.max_priority_fee_per_gas {
-            Ok(value.try_into().map_err(|_| Error::ConversionError(Field::MaxPriorityFeePerGas))?)
+            Ok(value
+                .try_into()
+                .map_err(|_| Error::ConversionError(Field::MaxPriorityFeePerGas))?)
         } else {
             Ok(0)
         }
@@ -140,7 +155,9 @@ impl RpcTx {
 
     fn max_fee_per_blob_gas(&self) -> Result<u128, Error> {
         if let Some(value) = &self.0.max_fee_per_blob_gas {
-            Ok(value.try_into().map_err(|_| Error::ConversionError(Field::MaxFeePerBlobGas))?)
+            Ok(value
+                .try_into()
+                .map_err(|_| Error::ConversionError(Field::MaxFeePerBlobGas))?)
         } else {
             Ok(0)
         }
@@ -151,8 +168,14 @@ impl RpcTx {
             let sig = Signature::from_rs_and_parity(
                 signature.r,
                 signature.s,
-                Parity::Eip155(signature.v.try_into().map_err(|_| Error::ConversionError(Field::Signature))?),
-            ).map_err(|_| Error::ConversionError(Field::Signature))?;
+                Parity::Eip155(
+                    signature
+                        .v
+                        .try_into()
+                        .map_err(|_| Error::ConversionError(Field::Signature))?,
+                ),
+            )
+            .map_err(|_| Error::ConversionError(Field::Signature))?;
 
             Ok(sig)
         } else {
@@ -164,7 +187,7 @@ impl RpcTx {
         if let Some(al) = self.0.access_list.clone() {
             let mut target_list_items: Vec<_> = vec![];
             for item in al {
-                target_list_items.push(AccessListItem{
+                target_list_items.push(AccessListItem {
                     address: item.address,
                     storage_keys: item.storage_keys,
                 });

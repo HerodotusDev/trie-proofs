@@ -2397,7 +2397,6 @@ dependencies = [
  "anyhow",
  "eth_trie",
  "ethereum-types",
- "hex",
  "reqwest",
  "serde",
  "serde_json",
