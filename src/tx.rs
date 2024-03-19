@@ -12,8 +12,6 @@ pub struct RpcTx(pub Transaction);
 impl TryFrom<RpcTx> for ConsensusTx {
     type Error = Error;
     fn try_from(tx: RpcTx) -> Result<ConsensusTx, Error> {
-        println!("TxType: {:?}", tx.version()?);
-        println!("Tx: {:?}", tx.0);
         let chain_id = tx.chain_id();
         let nonce: u64 = tx.0.nonce.try_into().map_err(|_| Error::ConversionError(Field::Nonce))?;
         let gas_limit: u64 = tx.0.gas.try_into().map_err(|_| Error::ConversionError(Field::GasLimit))?;
@@ -75,7 +73,7 @@ impl TryFrom<RpcTx> for ConsensusTx {
                 return Ok(ConsensusTx(res.into_signed(tx.signature()?).into()))
             },
             TxType::Eip4844 => {
-                let max_fee_per_gas = tx.max_fee_per_blob_gas()?;
+                let max_fee_per_gas = tx.max_fee_per_gas()?;
                 let max_priority_fee_per_gas = tx.max_priority_fee_per_gas()?;
                 let max_fee_per_blob_gas = tx.max_fee_per_blob_gas()?;
 
@@ -100,7 +98,6 @@ impl TryFrom<RpcTx> for ConsensusTx {
 
 impl RpcTx {
     fn chain_id(&self) -> Option<u64> {
-        println!("ChainId: {:?}", &self.0.chain_id);
         if let Some(chain_id) = &self.0.chain_id {
            Some(chain_id.try_into().unwrap())
         } else {
