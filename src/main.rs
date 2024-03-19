@@ -26,7 +26,14 @@ async fn main() -> Result<(), Error> {
 
     let mut trie = mpt::build_tx_tree(converted, tx_root)?;
     let proof = mpt::get_proof(&mut trie, tx_index)?;
-    mpt::verify_proof(&trie, tx_root, tx_index, proof)?;
+    mpt::verify_proof(&trie, tx_root, tx_index, proof.clone())?;
+
+    let proof_obj = proof::MptProof {
+        proof,
+        tx_root,
+        tx_hash,
+    };
+    println!("{}", serde_json::to_string(&proof_obj).unwrap());
 
     Ok(())
 }

@@ -1,5 +1,16 @@
+use alloy_primitives::B256;
 use crate::Error;
 use eth_trie::TrieError;
+use serde::Serialize;
+
+#[serde_with::serde_as]
+#[derive(Serialize, Debug)]
+pub struct MptProof {
+    #[serde_as(as = "Vec<serde_with::hex::Hex>")]
+    pub proof: Vec<Vec<u8>>,
+    pub tx_root: B256,
+    pub tx_hash: B256,
+}
 
 pub(crate) mod mpt {
     use crate::tx::ConsensusTx;
@@ -51,10 +62,6 @@ pub(crate) mod mpt {
             Ok(Some(_)) => Ok(()),
             _ => Err(Error::InvalidMPTProof),
         }
-    }
-
-    pub fn build_receipt_tree() {
-        unimplemented!()
     }
 }
 
