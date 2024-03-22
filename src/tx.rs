@@ -9,8 +9,10 @@ use alloy_rpc_types::Transaction;
 
 #[derive(Debug, Clone)]
 pub struct ConsensusTx(pub TxEnvelope);
+
 #[derive(Debug, Clone)]
-pub struct RpcTx(pub Transaction);
+pub(crate) struct RpcTx(pub Transaction);
+
 impl TryFrom<RpcTx> for ConsensusTx {
     type Error = Error;
     fn try_from(tx: RpcTx) -> Result<ConsensusTx, Error> {
