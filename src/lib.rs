@@ -152,13 +152,8 @@ impl TxReceiptsMptHandler {
         })
     }
 
-    pub fn tx_hash_to_tx_index(&self, tx_hash: B256) -> Result<u64, Error> {
-        let target_trie = self.trie.as_ref().ok_or(Error::TrieNotFound)?;
-        let tx_index = target_trie
-            .txs
-            .iter()
-            .position(|tx| tx.0.trie_hash() == tx_hash)
-            .ok_or(Error::TxNotFound)?;
+    pub async fn tx_hash_to_tx_index(&self, tx_hash: B256) -> Result<u64, Error> {
+        let tx_index = self.provider.get_tx_index_by_hash(tx_hash).await?;
         Ok(tx_index as u64)
     }
 
@@ -297,15 +292,19 @@ mod tests {
     async fn test_tx_receipt_mpt_proof_from_number() {
         let mut mpt_handler = TxReceiptsMptHandler::new(MAINNET_RPC_URL).await.unwrap();
 
+        // Before EIP-2718
         mpt_handler
-            .build_tx_tree_from_block(19487818)
+            .build_tx_tree_from_block(12244000)
             .await
             .unwrap();
 
         let target_tx_hash = B256::from(hex!(
-            "d1b736880e62738b04a1f277f099784bbdf548157d30d4edc41269553013ef13"
+            "0c14baf5342c882f46a4ad379a0ecc9fa582981dbf5b9bbba7d7ad50addec217"
         ));
-        let tx_index = mpt_handler.tx_hash_to_tx_index(target_tx_hash).unwrap();
+        let tx_index = mpt_handler
+            .tx_hash_to_tx_index(target_tx_hash)
+            .await
+            .unwrap();
         let proof = mpt_handler.get_proof(tx_index).unwrap();
         mpt_handler.verify_proof(tx_index, proof.clone()).unwrap();
     }

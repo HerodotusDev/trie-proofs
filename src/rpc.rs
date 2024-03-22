@@ -57,6 +57,17 @@ impl RpcProvider {
         Ok((tx_receipts, block.header.receipts_root))
     }
 
+    pub(crate) async fn get_tx_index_by_hash(&self, tx_hash: B256) -> Result<u64, Error> {
+        let tx = self.provider.get_transaction_by_hash(tx_hash).await?;
+
+        let index: u64 = match tx.transaction_index {
+            Some(index) => index.try_into().map_err(|_| Error::TxNotFound)?,
+            None => return Err(Error::TxNotFound),
+        };
+
+        Ok(index)
+    }
+
     pub(crate) async fn get_tx_block_height(&self, tx_hash: B256) -> Result<u64, Error> {
         let tx = self.provider.get_transaction_by_hash(tx_hash).await?;
 
