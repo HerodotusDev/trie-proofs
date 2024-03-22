@@ -2,19 +2,28 @@
 name = "tx-trie"
 version = "0.1.0"
 edition = "2021"
+description = "Ethereum Transaction Trie Library"
+readme = "README.md"
+license-file = "LICENSE"
+repository = "https://github.com/HerodotusDev/eth-trie-proofs"
+keywords = ["mpt", "trie", "ethereum"]
+categories = ["cryptography", "data-structures", "blockchain"]
+exclude = [".github"]
+
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 tokio = { version = "1.36.0", features = ["rt", "rt-multi-thread", "macros"] }
-alloy-network = { git = "https://github.com/alloy-rs/alloy" }
-alloy-provider = { git = "https://github.com/alloy-rs/alloy" }
-alloy-rpc-client = { git = "https://github.com/alloy-rs/alloy" }
-alloy-rpc-types = { git = "https://github.com/alloy-rs/alloy" }
-alloy-transport = { git = "https://github.com/alloy-rs/alloy" }
-alloy-transport-http = { git = "https://github.com/alloy-rs/alloy" }
-alloy-consensus = { git = "https://github.com/alloy-rs/alloy" }
-alloy-eips = { git = "https://github.com/alloy-rs/alloy" }
+# alloy is still yet stable, important to pin the revision
+alloy-network = { git = "https://github.com/alloy-rs/alloy", rev = "52d16d3" }
+alloy-provider = { git = "https://github.com/alloy-rs/alloy", rev = "52d16d3" }
+alloy-rpc-client = { git = "https://github.com/alloy-rs/alloy", rev = "52d16d3" }
+alloy-rpc-types = { git = "https://github.com/alloy-rs/alloy", rev = "52d16d3" }
+alloy-transport = { git = "https://github.com/alloy-rs/alloy", rev = "52d16d3" }
+alloy-transport-http = { git = "https://github.com/alloy-rs/alloy", rev = "52d16d3" }
+alloy-consensus = { git = "https://github.com/alloy-rs/alloy", rev = "52d16d3" }
+alloy-eips = { git = "https://github.com/alloy-rs/alloy", rev = "52d16d3" }
 alloy-primitives = "0.6.4"
 url = "2.5.0"
 reqwest = "0.11.26"
