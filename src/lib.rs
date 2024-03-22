@@ -157,12 +157,6 @@ impl TxReceiptsMptHandler {
         Ok(tx_index as u64)
     }
 
-    // pub async fn build_tx_tree_from_tx_hash(&mut self, tx_hash: B256) -> Result<(), Error> {
-    //     let height = self.provider.get_tx_block_height(tx_hash).await?;
-    //     self.build_tx_tree_from_block(height).await?;
-    //     Ok(())
-    // }
-
     pub async fn build_tx_tree_from_block(&mut self, block_number: u64) -> Result<(), Error> {
         let (txs, tx_receipt_root) = self
             .provider
@@ -276,6 +270,7 @@ mod tests {
     async fn test_mpt_proof_from_number() {
         let mut mpt_handler = MptHandler::new(MAINNET_RPC_URL).await.unwrap();
 
+        // Before EIP-4844
         mpt_handler
             .build_tx_tree_from_block(19487818)
             .await
@@ -289,12 +284,50 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_mpt_proof_from_number_legacy() {
+        let mut mpt_handler = MptHandler::new(MAINNET_RPC_URL).await.unwrap();
+
+        // Before EIP-2718
+        mpt_handler
+            .build_tx_tree_from_block(12244000)
+            .await
+            .unwrap();
+        let target_tx_hash = B256::from(hex!(
+            "0c14baf5342c882f46a4ad379a0ecc9fa582981dbf5b9bbba7d7ad50addec217"
+        ));
+        let tx_index = mpt_handler.tx_hash_to_tx_index(target_tx_hash).unwrap();
+        let proof = mpt_handler.get_proof(tx_index).unwrap();
+        mpt_handler.verify_proof(tx_index, proof.clone()).unwrap();
+    }
+
+    #[tokio::test]
     async fn test_tx_receipt_mpt_proof_from_number() {
         let mut mpt_handler = TxReceiptsMptHandler::new(MAINNET_RPC_URL).await.unwrap();
 
         // Before EIP-2718
         mpt_handler
             .build_tx_tree_from_block(12244000)
+            .await
+            .unwrap();
+
+        let target_tx_hash = B256::from(hex!(
+            "0c14baf5342c882f46a4ad379a0ecc9fa582981dbf5b9bbba7d7ad50addec217"
+        ));
+        let tx_index = mpt_handler
+            .tx_hash_to_tx_index(target_tx_hash)
+            .await
+            .unwrap();
+        let proof = mpt_handler.get_proof(tx_index).unwrap();
+        mpt_handler.verify_proof(tx_index, proof.clone()).unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_tx_receipt_mpt_proof_from_number_2718() {
+        let mut mpt_handler = TxReceiptsMptHandler::new(MAINNET_RPC_URL).await.unwrap();
+
+        // After EIP-2718 Before EIP-1559
+        mpt_handler
+            .build_tx_tree_from_block(12965000)
             .await
             .unwrap();
 
