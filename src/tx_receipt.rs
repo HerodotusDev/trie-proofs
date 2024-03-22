@@ -28,7 +28,7 @@ impl TryFrom<RpcTxReceipt> for ConsensusTxReceipt {
                 Ok(ConsensusTxReceipt(res))
             }
             TxType::Eip2930 => {
-                let res = ReceiptEnvelope::Legacy(ReceiptWithBloom {
+                let res = ReceiptEnvelope::Eip2930(ReceiptWithBloom {
                     receipt: Receipt {
                         success: tx.success(),
                         cumulative_gas_used: tx.cumulative_gas_used(),
@@ -39,7 +39,7 @@ impl TryFrom<RpcTxReceipt> for ConsensusTxReceipt {
                 Ok(ConsensusTxReceipt(res))
             }
             TxType::Eip1559 => {
-                let res = ReceiptEnvelope::Legacy(ReceiptWithBloom {
+                let res = ReceiptEnvelope::Eip1559(ReceiptWithBloom {
                     receipt: Receipt {
                         success: tx.success(),
                         cumulative_gas_used: tx.cumulative_gas_used(),
@@ -50,7 +50,7 @@ impl TryFrom<RpcTxReceipt> for ConsensusTxReceipt {
                 Ok(ConsensusTxReceipt(res))
             }
             TxType::Eip4844 => {
-                let res = ReceiptEnvelope::Legacy(ReceiptWithBloom {
+                let res = ReceiptEnvelope::Eip4844(ReceiptWithBloom {
                     receipt: Receipt {
                         success: tx.success(),
                         cumulative_gas_used: tx.cumulative_gas_used(),
