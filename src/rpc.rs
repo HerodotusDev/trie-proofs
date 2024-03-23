@@ -3,7 +3,7 @@ use alloy_network::Ethereum;
 use alloy_primitives::B256;
 use alloy_provider::{Provider, ProviderBuilder, RootProvider};
 use alloy_rpc_client::RpcClient;
-use alloy_rpc_types::{BlockTransactions, Transaction};
+use alloy_rpc_types::{BlockTransactions, Transaction, TransactionReceipt};
 use alloy_transport::{RpcError, TransportErrorKind};
 use alloy_transport_http::Http;
 use reqwest::Client;
@@ -36,6 +36,36 @@ impl RpcProvider {
         };
 
         Ok((txs, block.header.transactions_root))
+    }
+
+    pub(crate) async fn get_block_transaction_receipts(
+        &self,
+        block_number: u64,
+    ) -> Result<(Vec<TransactionReceipt>, B256), Error> {
+        let block = self
+            .provider
+            .get_block(block_number.into(), true)
+            .await?
+            .ok_or_else(|| Error::BlockNotFound)?;
+
+        let tx_receipts = self
+            .provider
+            .get_block_receipts(block_number.into())
+            .await?
+            .ok_or_else(|| Error::BlockNotFound)?;
+
+        Ok((tx_receipts, block.header.receipts_root))
+    }
+
+    pub(crate) async fn get_tx_index_by_hash(&self, tx_hash: B256) -> Result<u64, Error> {
+        let tx = self.provider.get_transaction_by_hash(tx_hash).await?;
+
+        let index: u64 = match tx.transaction_index {
+            Some(index) => index.try_into().map_err(|_| Error::TxNotFound)?,
+            None => return Err(Error::TxNotFound),
+        };
+
+        Ok(index)
     }
 
     pub(crate) async fn get_tx_block_height(&self, tx_hash: B256) -> Result<u64, Error> {
