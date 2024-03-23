@@ -150,7 +150,7 @@ impl TxReceiptsMptHandler {
 
     pub async fn tx_hash_to_tx_index(&self, tx_hash: B256) -> Result<u64, Error> {
         let tx_index = self.provider.get_tx_index_by_hash(tx_hash).await?;
-        Ok(tx_index as u64)
+        Ok(tx_index)
     }
 
     pub async fn build_tx_receipts_tree_from_block(
