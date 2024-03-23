@@ -271,6 +271,18 @@ mod tests {
         txs_mpt_handler
             .verify_proof(tx_index, proof.clone())
             .unwrap();
+
+        let mut txs_mpt_handler2 = TxsMptHandler::new(MAINNET_RPC_URL).await.unwrap();
+
+        txs_mpt_handler2
+            .build_tx_tree_from_tx_hash(target_tx_hash)
+            .await
+            .unwrap();
+
+        assert_eq!(
+            txs_mpt_handler.get_root().unwrap(),
+            txs_mpt_handler2.get_root().unwrap()
+        );
     }
 
     #[tokio::test]
@@ -291,6 +303,18 @@ mod tests {
         txs_mpt_handler
             .verify_proof(tx_index, proof.clone())
             .unwrap();
+
+        let mut txs_mpt_handler2 = TxsMptHandler::new(MAINNET_RPC_URL).await.unwrap();
+
+        txs_mpt_handler2
+            .build_tx_tree_from_tx_hash(target_tx_hash)
+            .await
+            .unwrap();
+
+        assert_eq!(
+            txs_mpt_handler.get_root().unwrap(),
+            txs_mpt_handler2.get_root().unwrap()
+        );
     }
 
     #[tokio::test]
@@ -333,6 +357,18 @@ mod tests {
         txs_mpt_handler
             .verify_proof(tx_index, proof.clone())
             .unwrap();
+
+        let mut txs_mpt_handler2 = TxsMptHandler::new(MAINNET_RPC_URL).await.unwrap();
+
+        txs_mpt_handler2
+            .build_tx_tree_from_tx_hash(target_tx_hash)
+            .await
+            .unwrap();
+
+        assert_eq!(
+            txs_mpt_handler.get_root().unwrap(),
+            txs_mpt_handler2.get_root().unwrap()
+        );
     }
 
     #[tokio::test]
@@ -375,6 +411,18 @@ mod tests {
         txs_mpt_handler
             .verify_proof(tx_index, proof.clone())
             .unwrap();
+
+        let mut txs_mpt_handler2 = TxsMptHandler::new(MAINNET_RPC_URL).await.unwrap();
+
+        txs_mpt_handler2
+            .build_tx_tree_from_tx_hash(target_tx_hash)
+            .await
+            .unwrap();
+
+        assert_eq!(
+            txs_mpt_handler.get_root().unwrap(),
+            txs_mpt_handler2.get_root().unwrap()
+        );
     }
 
     #[tokio::test]
@@ -418,6 +466,18 @@ mod tests {
         txs_mpt_handler
             .verify_proof(tx_index, proof.clone())
             .unwrap();
+
+        let mut txs_mpt_handler2 = TxsMptHandler::new(MAINNET_RPC_URL).await.unwrap();
+
+        txs_mpt_handler2
+            .build_tx_tree_from_tx_hash(target_tx_hash)
+            .await
+            .unwrap();
+
+        assert_eq!(
+            txs_mpt_handler.get_root().unwrap(),
+            txs_mpt_handler2.get_root().unwrap()
+        );
     }
 
     #[tokio::test]
