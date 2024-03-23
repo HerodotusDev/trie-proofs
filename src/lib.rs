@@ -18,18 +18,18 @@ use std::sync::Arc;
 use tx::RpcTx;
 use tx_receipt::{ConsensusTxReceipt, RpcTxReceipt};
 
-pub struct MptHandler {
+pub struct TxsMptHandler {
     provider: RpcProvider,
-    trie: Option<Mpt>,
+    trie: Option<TxsMpt>,
 }
 
-pub struct Mpt {
+pub struct TxsMpt {
     trie: EthTrie<MemoryDB>,
-    txs: Vec<ConsensusTx>,
-    tx_root: B256,
+    elements: Vec<ConsensusTx>,
+    root: B256,
 }
 
-impl MptHandler {
+impl TxsMptHandler {
     pub async fn new(url: &str) -> Result<Self, Error> {
         let provider = RpcProvider::new(url);
         Ok(Self {
@@ -41,7 +41,7 @@ impl MptHandler {
     pub fn tx_hash_to_tx_index(&self, tx_hash: B256) -> Result<u64, Error> {
         let target_trie = self.trie.as_ref().ok_or(Error::TrieNotFound)?;
         let tx_index = target_trie
-            .txs
+            .elements
             .iter()
             .position(|tx| tx.0.trie_hash() == tx_hash)
             .ok_or(Error::TxNotFound)?;
@@ -61,15 +61,11 @@ impl MptHandler {
             .map(|tx| RpcTx(tx.clone()).try_into())
             .collect::<Result<Vec<_>, _>>()
             .unwrap();
-        self.build_tx_tree(converted_txs, tx_root)?;
+        self.build_trie(converted_txs, tx_root)?;
         Ok(())
     }
 
-    pub fn build_tx_tree(
-        &mut self,
-        txs: Vec<ConsensusTx>,
-        expected_root: B256,
-    ) -> Result<(), Error> {
+    pub fn build_trie(&mut self, txs: Vec<ConsensusTx>, expected_root: B256) -> Result<(), Error> {
         let memdb = Arc::new(MemoryDB::new(true));
         let mut trie = EthTrie::new(memdb.clone());
 
@@ -83,10 +79,10 @@ impl MptHandler {
             return Err(Error::UnexpectedRoot);
         }
 
-        let result_mpt = Mpt {
+        let result_mpt = TxsMpt {
             trie,
-            txs,
-            tx_root: expected_root,
+            elements: txs,
+            root: expected_root,
         };
 
         self.trie = Some(result_mpt);
@@ -104,7 +100,7 @@ impl MptHandler {
     pub fn verify_proof(&self, tx_index: u64, proof: Vec<Vec<u8>>) -> Result<(), Error> {
         let target_trie = self.trie.as_ref().ok_or(Error::TrieNotFound)?;
         match target_trie.trie.verify_proof(
-            H256::from_slice(target_trie.tx_root.as_slice()),
+            H256::from_slice(target_trie.root.as_slice()),
             alloy_rlp::encode(U256::from(tx_index)).as_slice(),
             proof,
         ) {
@@ -116,19 +112,19 @@ impl MptHandler {
     pub fn get_tx(&self, tx_index: u64) -> Result<&ConsensusTx, Error> {
         let target_trie = self.trie.as_ref().ok_or(Error::TrieNotFound)?;
         target_trie
-            .txs
+            .elements
             .get(tx_index as usize)
             .ok_or(Error::TxNotFound)
     }
 
-    pub fn get_txs(&self) -> Result<&Vec<ConsensusTx>, Error> {
+    pub fn get_elements(&self) -> Result<&Vec<ConsensusTx>, Error> {
         let target_trie = self.trie.as_ref().ok_or(Error::TrieNotFound)?;
-        Ok(&target_trie.txs)
+        Ok(&target_trie.elements)
     }
 
-    pub fn get_tx_root(&self) -> Result<B256, Error> {
+    pub fn get_root(&self) -> Result<B256, Error> {
         let target_trie = self.trie.as_ref().ok_or(Error::TrieNotFound)?;
-        Ok(target_trie.tx_root)
+        Ok(target_trie.root)
     }
 }
 
@@ -139,8 +135,8 @@ pub struct TxReceiptsMptHandler {
 
 pub struct TxReceiptsMpt {
     trie: EthTrie<MemoryDB>,
-    txs: Vec<ConsensusTxReceipt>,
-    tx_root: B256,
+    elements: Vec<ConsensusTxReceipt>,
+    root: B256,
 }
 
 impl TxReceiptsMptHandler {
@@ -157,7 +153,10 @@ impl TxReceiptsMptHandler {
         Ok(tx_index as u64)
     }
 
-    pub async fn build_tx_tree_from_block(&mut self, block_number: u64) -> Result<(), Error> {
+    pub async fn build_tx_receipts_tree_from_block(
+        &mut self,
+        block_number: u64,
+    ) -> Result<(), Error> {
         let (txs, tx_receipt_root) = self
             .provider
             .get_block_transaction_receipts(block_number)
@@ -168,26 +167,23 @@ impl TxReceiptsMptHandler {
             .map(|tx_receipt| RpcTxReceipt(tx_receipt.clone()).try_into())
             .collect::<Result<Vec<_>, _>>()
             .unwrap();
-        self.build_tx_tree(converted_tx_receipts, tx_receipt_root)?;
+        self.build_trie(converted_tx_receipts, tx_receipt_root)?;
         Ok(())
     }
 
-    pub fn build_tx_tree(
+    pub fn build_trie(
         &mut self,
-        txs: Vec<ConsensusTxReceipt>,
+        tx_receipts: Vec<ConsensusTxReceipt>,
         expected_root: B256,
     ) -> Result<(), Error> {
         let memdb = Arc::new(MemoryDB::new(true));
         let mut trie = EthTrie::new(memdb.clone());
 
-        for (idx, tx) in txs.iter().enumerate() {
+        for (idx, tx) in tx_receipts.iter().enumerate() {
             let key = alloy_rlp::encode(U256::from(idx));
             let rlp = tx.0.encoded_2718();
             trie.insert(key.as_slice(), rlp.as_slice())?;
         }
-
-        println!("Root: {:?}", trie.root_hash()?);
-        println!("Expected Root: {:?}", expected_root.to_string());
 
         if trie.root_hash()?.as_bytes() != expected_root.as_slice() {
             return Err(Error::UnexpectedRoot);
@@ -195,8 +191,8 @@ impl TxReceiptsMptHandler {
 
         let result_mpt = TxReceiptsMpt {
             trie,
-            txs,
-            tx_root: expected_root,
+            elements: tx_receipts,
+            root: expected_root,
         };
 
         self.trie = Some(result_mpt);
@@ -214,7 +210,7 @@ impl TxReceiptsMptHandler {
     pub fn verify_proof(&self, tx_index: u64, proof: Vec<Vec<u8>>) -> Result<(), Error> {
         let target_trie = self.trie.as_ref().ok_or(Error::TrieNotFound)?;
         match target_trie.trie.verify_proof(
-            H256::from_slice(target_trie.tx_root.as_slice()),
+            H256::from_slice(target_trie.root.as_slice()),
             alloy_rlp::encode(U256::from(tx_index)).as_slice(),
             proof,
         ) {
@@ -223,22 +219,22 @@ impl TxReceiptsMptHandler {
         }
     }
 
-    pub fn get_tx_receipts(&self, tx_index: u64) -> Result<&ConsensusTxReceipt, Error> {
+    pub fn get_tx_receipt(&self, tx_index: u64) -> Result<&ConsensusTxReceipt, Error> {
         let target_trie = self.trie.as_ref().ok_or(Error::TrieNotFound)?;
         target_trie
-            .txs
+            .elements
             .get(tx_index as usize)
             .ok_or(Error::TxNotFound)
     }
 
-    pub fn get_txs_receipts(&self) -> Result<&Vec<ConsensusTxReceipt>, Error> {
+    pub fn get_elements(&self) -> Result<&Vec<ConsensusTxReceipt>, Error> {
         let target_trie = self.trie.as_ref().ok_or(Error::TrieNotFound)?;
-        Ok(&target_trie.txs)
+        Ok(&target_trie.elements)
     }
 
-    pub fn get_tx_root(&self) -> Result<B256, Error> {
+    pub fn get_root(&self) -> Result<B256, Error> {
         let target_trie = self.trie.as_ref().ok_or(Error::TrieNotFound)?;
-        Ok(target_trie.tx_root)
+        Ok(target_trie.root)
     }
 }
 
@@ -250,96 +246,201 @@ mod tests {
 
     const MAINNET_RPC_URL: &str = "https://mainnet.infura.io/v3/da91aac0e91048b3bf3be813262d43a6";
 
+    // Test cases
+    // Frontier: 46147 (receipts not available)
+    // Byzantium: 4370000
+    // EIP-2930(Berlin): 12244000
+    // EIP-1559(London): 12965000
+    // EIP-4844(Dencun): 19426589
+
     #[tokio::test]
-    async fn test_mpt_proof_from_tx_hash() {
-        let mut mpt_handler = MptHandler::new(MAINNET_RPC_URL).await.unwrap();
-        let tx_hash = B256::from(hex!(
-            "ef1503cc8bd82da1552389183a097126bae21a889390a7be556b1f69d8c75c29"
+    async fn test_tx_mpt_frontier() {
+        let target_tx_hash = B256::from(hex!(
+            "5c504ed432cb51138bcf09aa5e8a410dd4a1e204ef84bfed1be16dfba1b22060"
         ));
-        mpt_handler
-            .build_tx_tree_from_tx_hash(tx_hash)
+
+        let mut txs_mpt_handler = TxsMptHandler::new(MAINNET_RPC_URL).await.unwrap();
+
+        txs_mpt_handler
+            .build_tx_tree_from_block(46147)
             .await
             .unwrap();
 
-        let tx_index = mpt_handler.tx_hash_to_tx_index(tx_hash).unwrap();
-        let proof = mpt_handler.get_proof(tx_index).unwrap();
-        mpt_handler.verify_proof(tx_index, proof.clone()).unwrap();
+        let tx_index = txs_mpt_handler.tx_hash_to_tx_index(target_tx_hash).unwrap();
+        let proof = txs_mpt_handler.get_proof(tx_index).unwrap();
+        txs_mpt_handler
+            .verify_proof(tx_index, proof.clone())
+            .unwrap();
     }
 
     #[tokio::test]
-    async fn test_mpt_proof_from_number() {
-        let mut mpt_handler = MptHandler::new(MAINNET_RPC_URL).await.unwrap();
+    async fn test_tx_mpt_byzantium() {
+        let target_tx_hash = B256::from(hex!(
+            "1fcb1196d8a3bff0bcf13309d2d2bb1a23ae1ac13f5674c801be0ff9254d5ab5"
+        ));
 
-        // Before EIP-4844
-        mpt_handler
-            .build_tx_tree_from_block(19487818)
+        let mut txs_mpt_handler = TxsMptHandler::new(MAINNET_RPC_URL).await.unwrap();
+
+        txs_mpt_handler
+            .build_tx_tree_from_block(4370000)
             .await
             .unwrap();
-        let target_tx_hash = B256::from(hex!(
-            "d1b736880e62738b04a1f277f099784bbdf548157d30d4edc41269553013ef13"
-        ));
-        let tx_index = mpt_handler.tx_hash_to_tx_index(target_tx_hash).unwrap();
-        let proof = mpt_handler.get_proof(tx_index).unwrap();
-        mpt_handler.verify_proof(tx_index, proof.clone()).unwrap();
+
+        let tx_index = txs_mpt_handler.tx_hash_to_tx_index(target_tx_hash).unwrap();
+        let proof = txs_mpt_handler.get_proof(tx_index).unwrap();
+        txs_mpt_handler
+            .verify_proof(tx_index, proof.clone())
+            .unwrap();
     }
 
     #[tokio::test]
-    async fn test_mpt_proof_from_number_legacy() {
-        let mut mpt_handler = MptHandler::new(MAINNET_RPC_URL).await.unwrap();
-
-        // Before EIP-2718
-        mpt_handler
-            .build_tx_tree_from_block(12244000)
-            .await
-            .unwrap();
+    async fn test_tx_receipt_byzantium() {
         let target_tx_hash = B256::from(hex!(
-            "0c14baf5342c882f46a4ad379a0ecc9fa582981dbf5b9bbba7d7ad50addec217"
+            "1fcb1196d8a3bff0bcf13309d2d2bb1a23ae1ac13f5674c801be0ff9254d5ab5"
         ));
-        let tx_index = mpt_handler.tx_hash_to_tx_index(target_tx_hash).unwrap();
-        let proof = mpt_handler.get_proof(tx_index).unwrap();
-        mpt_handler.verify_proof(tx_index, proof.clone()).unwrap();
-    }
 
-    #[tokio::test]
-    async fn test_tx_receipt_mpt_proof_from_number() {
-        let mut mpt_handler = TxReceiptsMptHandler::new(MAINNET_RPC_URL).await.unwrap();
-
-        // Before EIP-2718
-        mpt_handler
-            .build_tx_tree_from_block(12244000)
+        let mut tx_receipts_mpt_handler = TxReceiptsMptHandler::new(MAINNET_RPC_URL).await.unwrap();
+        tx_receipts_mpt_handler
+            .build_tx_receipts_tree_from_block(4370000)
             .await
             .unwrap();
 
-        let target_tx_hash = B256::from(hex!(
-            "0c14baf5342c882f46a4ad379a0ecc9fa582981dbf5b9bbba7d7ad50addec217"
-        ));
-        let tx_index = mpt_handler
+        let tx_index = tx_receipts_mpt_handler
             .tx_hash_to_tx_index(target_tx_hash)
             .await
             .unwrap();
-        let proof = mpt_handler.get_proof(tx_index).unwrap();
-        mpt_handler.verify_proof(tx_index, proof.clone()).unwrap();
+        let proof = tx_receipts_mpt_handler.get_proof(tx_index).unwrap();
+        tx_receipts_mpt_handler
+            .verify_proof(tx_index, proof.clone())
+            .unwrap();
     }
 
     #[tokio::test]
-    async fn test_tx_receipt_mpt_proof_from_number_2718() {
-        let mut mpt_handler = TxReceiptsMptHandler::new(MAINNET_RPC_URL).await.unwrap();
+    async fn test_tx_mpt_2930() {
+        let target_tx_hash = B256::from(hex!(
+            "aa40dd75b18f375df1ae9a7f7de217fa3bc49b94db3c4da7b3974130990aefef"
+        ));
 
-        // After EIP-2718 Before EIP-1559
-        mpt_handler
+        let mut txs_mpt_handler = TxsMptHandler::new(MAINNET_RPC_URL).await.unwrap();
+
+        txs_mpt_handler
+            .build_tx_tree_from_block(12244000)
+            .await
+            .unwrap();
+
+        let tx_index = txs_mpt_handler.tx_hash_to_tx_index(target_tx_hash).unwrap();
+        let proof = txs_mpt_handler.get_proof(tx_index).unwrap();
+        txs_mpt_handler
+            .verify_proof(tx_index, proof.clone())
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_tx_receipt_2930() {
+        let target_tx_hash = B256::from(hex!(
+            "aa40dd75b18f375df1ae9a7f7de217fa3bc49b94db3c4da7b3974130990aefef"
+        ));
+
+        let mut tx_receipts_mpt_handler = TxReceiptsMptHandler::new(MAINNET_RPC_URL).await.unwrap();
+        tx_receipts_mpt_handler
+            .build_tx_receipts_tree_from_block(12244000)
+            .await
+            .unwrap();
+
+        let tx_index = tx_receipts_mpt_handler
+            .tx_hash_to_tx_index(target_tx_hash)
+            .await
+            .unwrap();
+        let proof = tx_receipts_mpt_handler.get_proof(tx_index).unwrap();
+        tx_receipts_mpt_handler
+            .verify_proof(tx_index, proof.clone())
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_tx_mpt_1559() {
+        let target_tx_hash = B256::from(hex!(
+            "2055b7e01304f87f9412cd44758cd248bc2da2dab95c97026064ffb084711735"
+        ));
+
+        let mut txs_mpt_handler = TxsMptHandler::new(MAINNET_RPC_URL).await.unwrap();
+
+        txs_mpt_handler
             .build_tx_tree_from_block(12965000)
             .await
             .unwrap();
 
+        let tx_index = txs_mpt_handler.tx_hash_to_tx_index(target_tx_hash).unwrap();
+        let proof = txs_mpt_handler.get_proof(tx_index).unwrap();
+        txs_mpt_handler
+            .verify_proof(tx_index, proof.clone())
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_tx_receipt_1559() {
         let target_tx_hash = B256::from(hex!(
-            "0c14baf5342c882f46a4ad379a0ecc9fa582981dbf5b9bbba7d7ad50addec217"
+            "2055b7e01304f87f9412cd44758cd248bc2da2dab95c97026064ffb084711735"
         ));
-        let tx_index = mpt_handler
+
+        let mut tx_receipts_mpt_handler = TxReceiptsMptHandler::new(MAINNET_RPC_URL).await.unwrap();
+        tx_receipts_mpt_handler
+            .build_tx_receipts_tree_from_block(12965000)
+            .await
+            .unwrap();
+
+        let tx_index = tx_receipts_mpt_handler
             .tx_hash_to_tx_index(target_tx_hash)
             .await
             .unwrap();
-        let proof = mpt_handler.get_proof(tx_index).unwrap();
-        mpt_handler.verify_proof(tx_index, proof.clone()).unwrap();
+        let proof = tx_receipts_mpt_handler.get_proof(tx_index).unwrap();
+        tx_receipts_mpt_handler
+            .verify_proof(tx_index, proof.clone())
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_tx_mpt_4844() {
+        // 4844 transaction
+        let target_tx_hash = B256::from(hex!(
+            "9c1fbda4f649ac806ab0faefbe94e1a60282eb374ead6aa01bac042f52b28a8c"
+        ));
+
+        let mut txs_mpt_handler = TxsMptHandler::new(MAINNET_RPC_URL).await.unwrap();
+
+        txs_mpt_handler
+            .build_tx_tree_from_block(19426589)
+            .await
+            .unwrap();
+
+        let tx_index = txs_mpt_handler.tx_hash_to_tx_index(target_tx_hash).unwrap();
+        let proof = txs_mpt_handler.get_proof(tx_index).unwrap();
+        txs_mpt_handler
+            .verify_proof(tx_index, proof.clone())
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_tx_receipt_4844() {
+        // 4844 transaction
+        let target_tx_hash = B256::from(hex!(
+            "9c1fbda4f649ac806ab0faefbe94e1a60282eb374ead6aa01bac042f52b28a8c"
+        ));
+
+        let mut tx_receipts_mpt_handler = TxReceiptsMptHandler::new(MAINNET_RPC_URL).await.unwrap();
+        tx_receipts_mpt_handler
+            .build_tx_receipts_tree_from_block(19426589)
+            .await
+            .unwrap();
+
+        let tx_index = tx_receipts_mpt_handler
+            .tx_hash_to_tx_index(target_tx_hash)
+            .await
+            .unwrap();
+        let proof = tx_receipts_mpt_handler.get_proof(tx_index).unwrap();
+        tx_receipts_mpt_handler
+            .verify_proof(tx_index, proof.clone())
+            .unwrap();
     }
 }
 
