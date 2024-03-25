@@ -2,7 +2,7 @@
 
 # eth-trie-proofs
 
-A comprehensive proofs handler for Ethereum transaction tries and transaction receipt tries, tested with various EIPs including Legacy, EIP-2930, EIP-1559, and EIP-4844.
+A comprehensive proofs handler for Ethereum trie. Tested with various EIPs including Legacy, EIP-2930, EIP-1559, and EIP-4844.
 
 ## Features
 
@@ -21,10 +21,10 @@ A comprehensive proofs handler for Ethereum transaction tries and transaction re
 
 ## Installation
 
-Use the following command to add `tx-trie` to your project:
+Use the following command to add `eth-trie-proofs` to your project:
 
 ```bash
-❯ cargo add tx-trie
+❯ cargo add eth-trie-proofs
 ```
 
 ## Example
