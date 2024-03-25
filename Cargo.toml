@@ -1,8 +1,8 @@
 [package]
-name = "tx-trie"
+name = "eth-trie-proofs"
 version = "0.1.0"
 edition = "2021"
-description = "Ethereum Transaction Trie Library"
+description = "Ethereum Transaction Trie Proofs"
 readme = "README.md"
 license-file = "LICENSE"
 repository = "https://github.com/HerodotusDev/eth-trie-proofs"

@@ -1,6 +1,8 @@
-# tx-trie: Ethereum Transaction Trie / Transaction Receipt Trie Handler
+![](.github/readme.png)
 
-A comprehensive handler for Ethereum transaction tries and transaction receipt tries, tested with various EIPs including Legacy, EIP-2930, EIP-1559, and EIP-4844.
+# eth-trie-proofs
+
+A comprehensive proofs handler for Ethereum transaction tries and transaction receipt tries, tested with various EIPs including Legacy, EIP-2930, EIP-1559, and EIP-4844.
 
 ## Features
 
