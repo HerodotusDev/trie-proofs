@@ -47,7 +47,7 @@ let proof = txs_mpt_handler.get_proof(tx_index)?;
 txs_mpt_handler
     .verify_proof(tx_index, proof.clone())?;
 
-// You can either build with target tx hash. Both root match.
+// You can either build with target tx hash. Both roots match.
 let mut txs_mpt_handler2 = TxsMptHandler::new(MAINNET_RPC_URL)?;
 txs_mpt_handler2
     .build_tx_tree_from_tx_hash(target_tx_hash)
@@ -80,6 +80,7 @@ tx_receipts_mpt_handler
     .verify_proof(tx_index, proof.clone())?;
 ```
 
-### Dependency
+### Credit
 
-For trie implementation, this project depends on the [eth_trie](https://crates.io/crates/eth_trie) crate.
+For trie implementation, this project depends on the [eth_trie](https://crates.io/crates/eth_trie).
+For transaction and transaction receipt types, heavily depends on the [alloy](https://github.com/alloy-rs/alloy).
