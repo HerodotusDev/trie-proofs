@@ -21,10 +21,10 @@ A comprehensive proofs handler for Ethereum trie. Tested with various EIPs inclu
 
 ## Installation
 
-Use the following command to add `eth-trie-proofs` to your project:
+Add dependency `eth-trie-proofs` to your project:
 
-```bash
-❯ cargo add eth-trie-proofs
+```
+eth-trie-proofs = { git = "https://github.com/HerodotusDev/eth-trie-proofs.git", branch = "main" }
 ```
 
 ## Example
