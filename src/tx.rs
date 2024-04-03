@@ -4,11 +4,18 @@ use alloy_consensus::{
 };
 use alloy_eips::eip2930::AccessList;
 use alloy_eips::eip2930::AccessListItem;
+use alloy_network::eip2718::Encodable2718;
 use alloy_primitives::{Parity, Signature, TxKind, U64};
 use alloy_rpc_types::Transaction;
 
 #[derive(Debug, Clone)]
 pub struct ConsensusTx(pub TxEnvelope);
+
+impl ConsensusTx {
+    pub fn rlp_encode(&self) -> Vec<u8> {
+        self.0.encoded_2718()
+    }
+}
 
 #[derive(Debug, Clone)]
 pub(crate) struct RpcTx(pub Transaction);
