@@ -84,3 +84,11 @@ tx_receipts_mpt_handler
 
 For trie implementation, this project depends on the [eth_trie](https://crates.io/crates/eth_trie).
 For transaction and transaction receipt types, heavily depends on the [alloy](https://github.com/alloy-rs/alloy).
+
+## License
+
+`eth-trie-proofs` is licensed under the [GNU General Public License v3.0](./LICENSE).
+
+---
+
+Herodotus Dev Ltd - 2024
