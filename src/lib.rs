@@ -2,8 +2,8 @@ use alloy_transport::{RpcError, TransportErrorKind};
 use eth_trie::TrieError;
 
 mod rpc;
-mod tx;
-mod tx_receipt;
+pub mod tx;
+pub mod tx_receipt;
 pub mod tx_receipt_trie;
 pub mod tx_trie;
 
