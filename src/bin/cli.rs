@@ -9,7 +9,6 @@ use serde_with::serde_as;
 use eth_trie_proofs::tx_receipt_trie::TxReceiptsMptHandler;
 use eth_trie_proofs::Error;
 
-
 #[derive(Debug, Parser)]
 #[command(name = "eth-trie-proof")]
 #[command(version, about, long_about = None)]
@@ -75,9 +74,7 @@ async fn main() -> Result<(), Error> {
 async fn generate_tx_proof(tx_hash: &str, rpc_url: &str) -> Result<(), Error> {
     let mut txs_mpt_handler = TxsMptHandler::new(rpc_url)?;
     let tx_hash = B256::from_hex(tx_hash).unwrap();
-    txs_mpt_handler
-        .build_tx_tree_from_tx_hash(tx_hash)
-        .await?;
+    txs_mpt_handler.build_tx_tree_from_tx_hash(tx_hash).await?;
     let index = txs_mpt_handler.tx_hash_to_tx_index(tx_hash)?;
     let proof = txs_mpt_handler.get_proof(index)?;
     let root = txs_mpt_handler.get_root()?;
@@ -94,9 +91,7 @@ async fn generate_receipt_proof(tx_hash: &str, rpc_url: &str) -> Result<(), Erro
     tx_receipts_mpt_handler
         .build_tx_receipt_tree_from_tx_hash(tx_hash)
         .await?;
-    let index = tx_receipts_mpt_handler
-        .tx_hash_to_tx_index(tx_hash)
-        .await?;
+    let index = tx_receipts_mpt_handler.tx_hash_to_tx_index(tx_hash).await?;
     let proof = tx_receipts_mpt_handler.get_proof(index)?;
     let root = tx_receipts_mpt_handler.get_root()?;
 

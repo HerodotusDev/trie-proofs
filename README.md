@@ -2,7 +2,7 @@
 
 # eth-trie-proofs
 
-A comprehensive proofs handler for Ethereum trie. Tested with various EIPs including Legacy, EIP-2930, EIP-1559, and EIP-4844.
+A comprehensive proofs handler for Ethereum trie. Tested with various EIPs including Legacy, EIP-2930, EIP-1559, and EIP-4844. This repository exposes the proof building functionalities, and a CLI version.
 
 ## Features
 
@@ -18,6 +18,22 @@ A comprehensive proofs handler for Ethereum trie. Tested with various EIPs inclu
   - [x] Build a trie with a target transaction hash
   - [x] Retrieve proof by transaction index
   - [x] Verify proof
+
+## CLI Tool
+
+The CLI tool supports generating proofs for transactions and receipts. Use the following commands based on your requirements:
+
+**Generate a Proof via CLI**
+To generate a proof for a transaction, use the following command:
+
+`cargo run --bin eth-trie-proofs tx <TRANSACTION_HASH> [RPC_URL]`
+
+To generate a receipt proof:
+
+`cargo run --bin eth-trie-proofs receipt <TRANSACTION_HASH> [RPC_URL]`
+
+As a default, `https://ethereum-rpc.publicnode.com` is used as an RPC provider. This will probably work for recent transactions, but it is advised to use a dedicated RPC.
+
 
 ## Installation
 
