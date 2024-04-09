@@ -20,20 +20,24 @@ A comprehensive proofs handler for Ethereum trie. Tested with various EIPs inclu
   - [x] Verify proof
 
 ## CLI Tool
-
 The CLI tool supports generating proofs for transactions and receipts. Use the following commands based on your requirements:
 
+Install with: `cargo install --path ./`
+
+Or, run without installing:  `cargo run --bin etp-cli`
+
+
 **Generate a Proof via CLI**
+
 To generate a proof for a transaction, use the following command:
 
-`cargo run --bin eth-trie-proofs tx <TRANSACTION_HASH> [RPC_URL]`
+`etp-cli tx <TRANSACTION_HASH> [RPC_URL]`
 
 To generate a receipt proof:
 
-`cargo run --bin eth-trie-proofs receipt <TRANSACTION_HASH> [RPC_URL]`
+`etp-cli receipt <TRANSACTION_HASH> [RPC_URL]`
 
 As a default, `https://ethereum-rpc.publicnode.com` is used as an RPC provider. This will probably work for recent transactions, but it is advised to use a dedicated RPC.
-
 
 ## Installation
 

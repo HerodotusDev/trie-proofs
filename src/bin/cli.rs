@@ -19,14 +19,14 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
-    #[command(about = "Generate a tx proof")]
+    #[command(about = "Generate a MPT proof for a transaction")]
     Tx {
         /// Target transaction hash
         tx_hash: String,
         /// Ethereum node RPC URL
         rpc_url: Option<String>,
     },
-    #[command(about = "Generate a receipt proof")]
+    #[command(about = "Generate a MPT proof for a transaction receipt")]
     Receipt {
         /// Receipt transaction hash
         tx_hash: String,

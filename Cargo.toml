@@ -36,5 +36,5 @@ serde_with = { version = "3.7.0", features = ["hex"] }
 serde_json = "1.0.114"
 
 [[bin]]
-name = "eth-trie-proofs"
+name = "etp-cli"
 path = "src/bin/cli.rs"
