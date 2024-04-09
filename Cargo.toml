@@ -30,3 +30,11 @@ reqwest = "0.11.26"
 alloy-rlp = "0.3.4"
 eth_trie = "0.4.0"
 ethereum-types = "0.14.1"
+clap = { version = "4.5.4", features = ["derive"] }
+serde = "1.0.197"
+serde_with = { version = "3.7.0", features = ["hex"] }
+serde_json = "1.0.114"
+
+[[bin]]
+name = "etp-cli"
+path = "src/bin/cli.rs"

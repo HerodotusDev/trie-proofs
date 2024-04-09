@@ -49,6 +49,15 @@ impl TxReceiptsMptHandler {
         Ok(tx_index)
     }
 
+    /// Builds the receipt trie from a specific transaction hash.
+    ///
+    /// This fetches the block height for the transaction and delegates to [`build_tx_receipts_tree_from_block`].
+    pub async fn build_tx_receipt_tree_from_tx_hash(&mut self, tx_hash: B256) -> Result<(), Error> {
+        let height = self.provider.get_tx_block_height(tx_hash).await?;
+        self.build_tx_receipts_tree_from_block(height).await?;
+        Ok(())
+    }
+
     /// Builds the transaction receipts trie from a given block number.
     ///
     /// This involves fetching the transactions for the block and [`build_trie`].
