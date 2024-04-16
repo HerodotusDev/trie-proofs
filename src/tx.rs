@@ -2,6 +2,7 @@ use crate::{Error, Field};
 use alloy_consensus::{
     SignableTransaction, TxEip1559, TxEip2930, TxEip4844, TxEnvelope, TxLegacy, TxType,
 };
+use alloy_eips::eip2718::Decodable2718;
 use alloy_eips::eip2930::AccessList;
 use alloy_eips::eip2930::AccessListItem;
 use alloy_network::eip2718::Encodable2718;
@@ -14,6 +15,11 @@ pub struct ConsensusTx(pub TxEnvelope);
 impl ConsensusTx {
     pub fn rlp_encode(&self) -> Vec<u8> {
         self.0.encoded_2718()
+    }
+
+    pub fn rlp_decode(mut data: &[u8]) -> Result<Self, Error> {
+        let tx = TxEnvelope::decode_2718(&mut data).map_err(Error::Rlp)?;
+        Ok(ConsensusTx(tx))
     }
 }
 
