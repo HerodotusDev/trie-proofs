@@ -19,6 +19,7 @@ pub enum Error {
     UnexpectedRoot,
     InvalidMPTProof,
     TrieNotFound,
+    FieldNotFound,
 }
 
 #[derive(Debug)]

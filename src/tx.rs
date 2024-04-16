@@ -2,11 +2,12 @@ use crate::{Error, Field};
 use alloy_consensus::{
     SignableTransaction, TxEip1559, TxEip2930, TxEip4844, TxEnvelope, TxLegacy, TxType,
 };
+use alloy_consensus::{Transaction as ConsensusTransaction, TxEip4844Variant};
 use alloy_eips::eip2718::Decodable2718;
 use alloy_eips::eip2930::AccessList;
 use alloy_eips::eip2930::AccessListItem;
 use alloy_network::eip2718::Encodable2718;
-use alloy_primitives::{Parity, Signature, TxKind, U64};
+use alloy_primitives::{ChainId, FixedBytes, Parity, Signature, TxKind, U256, U64};
 use alloy_rpc_types::Transaction;
 
 #[derive(Debug, Clone)]
@@ -20,6 +21,160 @@ impl ConsensusTx {
     pub fn rlp_decode(mut data: &[u8]) -> Result<Self, Error> {
         let tx = TxEnvelope::decode_2718(&mut data).map_err(Error::Rlp)?;
         Ok(ConsensusTx(tx))
+    }
+
+    pub fn nonce(&self) -> u64 {
+        match &self.0 {
+            TxEnvelope::Legacy(tx) => tx.tx().nonce(),
+            TxEnvelope::Eip2930(tx) => tx.tx().nonce(),
+            TxEnvelope::Eip1559(tx) => tx.tx().nonce(),
+            TxEnvelope::Eip4844(tx) => tx.tx().nonce(),
+        }
+    }
+
+    pub fn gas_limit(&self) -> u64 {
+        match &self.0 {
+            TxEnvelope::Legacy(tx) => tx.tx().gas_limit(),
+            TxEnvelope::Eip2930(tx) => tx.tx().gas_limit(),
+            TxEnvelope::Eip1559(tx) => tx.tx().gas_limit(),
+            TxEnvelope::Eip4844(tx) => tx.tx().gas_limit(),
+        }
+    }
+
+    pub fn gas_price(&self) -> Option<U256> {
+        match &self.0 {
+            TxEnvelope::Legacy(tx) => tx.tx().gas_price(),
+            TxEnvelope::Eip2930(tx) => tx.tx().gas_price(),
+            TxEnvelope::Eip1559(tx) => tx.tx().gas_price(),
+            TxEnvelope::Eip4844(tx) => tx.tx().gas_price(),
+        }
+    }
+
+    pub fn to(&self) -> TxKind {
+        match &self.0 {
+            TxEnvelope::Legacy(tx) => tx.tx().to(),
+            TxEnvelope::Eip2930(tx) => tx.tx().to(),
+            TxEnvelope::Eip1559(tx) => tx.tx().to(),
+            TxEnvelope::Eip4844(tx) => tx.tx().to(),
+        }
+    }
+
+    pub fn value(&self) -> U256 {
+        match &self.0 {
+            TxEnvelope::Legacy(tx) => tx.tx().value(),
+            TxEnvelope::Eip2930(tx) => tx.tx().value(),
+            TxEnvelope::Eip1559(tx) => tx.tx().value(),
+            TxEnvelope::Eip4844(tx) => tx.tx().value(),
+        }
+    }
+
+    pub fn input(&self) -> &[u8] {
+        match &self.0 {
+            TxEnvelope::Legacy(tx) => tx.tx().input(),
+            TxEnvelope::Eip2930(tx) => tx.tx().input(),
+            TxEnvelope::Eip1559(tx) => tx.tx().input(),
+            TxEnvelope::Eip4844(tx) => tx.tx().input(),
+        }
+    }
+
+    pub fn v(&self) -> u64 {
+        match &self.0 {
+            TxEnvelope::Legacy(tx) => tx.signature().v().to_u64(),
+            TxEnvelope::Eip2930(tx) => tx.signature().v().to_u64(),
+            TxEnvelope::Eip1559(tx) => tx.signature().v().to_u64(),
+            TxEnvelope::Eip4844(tx) => tx.signature().v().to_u64(),
+        }
+    }
+
+    pub fn r(&self) -> U256 {
+        match &self.0 {
+            TxEnvelope::Legacy(tx) => tx.signature().r(),
+            TxEnvelope::Eip2930(tx) => tx.signature().r(),
+            TxEnvelope::Eip1559(tx) => tx.signature().r(),
+            TxEnvelope::Eip4844(tx) => tx.signature().r(),
+        }
+    }
+
+    pub fn s(&self) -> U256 {
+        match &self.0 {
+            TxEnvelope::Legacy(tx) => tx.signature().s(),
+            TxEnvelope::Eip2930(tx) => tx.signature().s(),
+            TxEnvelope::Eip1559(tx) => tx.signature().s(),
+            TxEnvelope::Eip4844(tx) => tx.signature().s(),
+        }
+    }
+
+    pub fn chain_id(&self) -> Option<ChainId> {
+        match &self.0 {
+            TxEnvelope::Legacy(tx) => tx.tx().chain_id(),
+            TxEnvelope::Eip2930(tx) => tx.tx().chain_id(),
+            TxEnvelope::Eip1559(tx) => tx.tx().chain_id(),
+            TxEnvelope::Eip4844(tx) => tx.tx().chain_id(),
+        }
+    }
+
+    pub fn access_list(&self) -> Option<AccessList> {
+        match &self.0 {
+            TxEnvelope::Legacy(_) => None,
+            TxEnvelope::Eip2930(tx) => Some(tx.tx().access_list.clone()),
+            TxEnvelope::Eip1559(tx) => Some(tx.tx().access_list.clone()),
+            TxEnvelope::Eip4844(tx) => match tx.tx() {
+                TxEip4844Variant::TxEip4844(tx) => Some(tx.access_list.clone()),
+                TxEip4844Variant::TxEip4844WithSidecar(tx) => Some(tx.tx().access_list.clone()),
+            },
+        }
+    }
+
+    pub fn max_fee_per_gas(&self) -> Option<u128> {
+        match &self.0 {
+            TxEnvelope::Legacy(_) => None,
+            TxEnvelope::Eip2930(_) => None,
+            TxEnvelope::Eip1559(tx) => Some(tx.tx().max_fee_per_gas),
+            TxEnvelope::Eip4844(tx) => match tx.tx() {
+                TxEip4844Variant::TxEip4844(tx) => Some(tx.max_fee_per_gas),
+                TxEip4844Variant::TxEip4844WithSidecar(tx) => Some(tx.tx().max_fee_per_gas),
+            },
+        }
+    }
+
+    pub fn max_priority_fee_per_gas(&self) -> Option<u128> {
+        match &self.0 {
+            TxEnvelope::Legacy(_) => None,
+            TxEnvelope::Eip2930(_) => None,
+            TxEnvelope::Eip1559(tx) => Some(tx.tx().max_priority_fee_per_gas),
+            TxEnvelope::Eip4844(tx) => match tx.tx() {
+                TxEip4844Variant::TxEip4844(tx) => Some(tx.max_priority_fee_per_gas),
+                TxEip4844Variant::TxEip4844WithSidecar(tx) => {
+                    Some(tx.tx().max_priority_fee_per_gas)
+                }
+            },
+        }
+    }
+
+    pub fn blob_versioned_hashes(&self) -> Option<Vec<FixedBytes<32>>> {
+        match &self.0 {
+            TxEnvelope::Legacy(_) => None,
+            TxEnvelope::Eip2930(_) => None,
+            TxEnvelope::Eip1559(_) => None,
+            TxEnvelope::Eip4844(tx) => match tx.tx() {
+                TxEip4844Variant::TxEip4844(tx) => Some(tx.blob_versioned_hashes.clone()),
+                TxEip4844Variant::TxEip4844WithSidecar(tx) => {
+                    Some(tx.tx().blob_versioned_hashes.clone())
+                }
+            },
+        }
+    }
+
+    pub fn max_fee_per_blob_gas(&self) -> Option<u128> {
+        match &self.0 {
+            TxEnvelope::Legacy(_) => None,
+            TxEnvelope::Eip2930(_) => None,
+            TxEnvelope::Eip1559(_) => None,
+            TxEnvelope::Eip4844(tx) => match tx.tx() {
+                TxEip4844Variant::TxEip4844(tx) => Some(tx.max_fee_per_blob_gas),
+                TxEip4844Variant::TxEip4844WithSidecar(tx) => Some(tx.tx().max_fee_per_blob_gas),
+            },
+        }
     }
 }
 
