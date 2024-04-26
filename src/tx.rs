@@ -299,6 +299,7 @@ impl RpcTx {
             Some(tx_type) if tx_type == &U64::from(1) => Ok(TxType::Eip2930),
             Some(tx_type) if tx_type == &U64::from(2) => Ok(TxType::Eip1559),
             Some(tx_type) if tx_type == &U64::from(3) => Ok(TxType::Eip4844),
+            None => Ok(TxType::Legacy),
             _ => Err(Error::InvalidTxVersion),
         }
     }
