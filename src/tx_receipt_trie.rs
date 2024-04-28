@@ -161,7 +161,7 @@ mod tests {
     use alloy_primitives::hex;
     use alloy_primitives::B256;
 
-    const MAINNET_RPC_URL: &str = "https://mainnet.infura.io/v3/da91aac0e91048b3bf3be813262d43a6";
+    const MAINNET_RPC_URL: &str = "https://mainnet.infura.io/v3/720000a7936b45c79d0868f70478e2e9";
 
     // Test cases
     // Byzantium: 4370000
