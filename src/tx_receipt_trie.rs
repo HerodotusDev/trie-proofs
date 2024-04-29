@@ -24,7 +24,7 @@ pub struct TxReceiptsMptHandler {
 /// The [`TxReceiptsMpt`] struct encapsulates the MPT (Merkle Patricia Trie) specifically for transaction receipts,
 /// including the trie structure itself, the [`ConsensusTxReceipt`] as elements, and the root hash.
 pub struct TxReceiptsMpt {
-    trie: EthTrie<MemoryDB>,
+    pub trie: EthTrie<MemoryDB>,
     elements: Vec<ConsensusTxReceipt>,
     root: B256,
 }
@@ -120,14 +120,14 @@ impl TxReceiptsMptHandler {
     }
 
     /// Verifies a proof for a transaction at a given index against the stored trie.
-    pub fn verify_proof(&self, tx_index: u64, proof: Vec<Vec<u8>>) -> Result<(), Error> {
+    pub fn verify_proof(&self, tx_index: u64, proof: Vec<Vec<u8>>) -> Result<Vec<u8>, Error> {
         let target_trie = self.trie.as_ref().ok_or(Error::TrieNotFound)?;
         match target_trie.trie.verify_proof(
             H256::from_slice(target_trie.root.as_slice()),
             alloy_rlp::encode(U256::from(tx_index)).as_slice(),
             proof,
         ) {
-            Ok(Some(_)) => Ok(()),
+            Ok(Some(result)) => Ok(result),
             _ => Err(Error::InvalidMPTProof),
         }
     }
