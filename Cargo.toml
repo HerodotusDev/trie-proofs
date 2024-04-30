@@ -22,7 +22,9 @@ alloy-rpc-client = { git = "https://github.com/alloy-rs/alloy", rev = "52d16d3" 
 alloy-rpc-types = { git = "https://github.com/alloy-rs/alloy", rev = "52d16d3" }
 alloy-transport = { git = "https://github.com/alloy-rs/alloy", rev = "52d16d3" }
 alloy-transport-http = { git = "https://github.com/alloy-rs/alloy", rev = "52d16d3" }
-alloy-consensus = { git = "https://github.com/alloy-rs/alloy", rev = "52d16d3" }
+alloy-consensus = { git = "https://github.com/alloy-rs/alloy", rev = "52d16d3", features = [
+    "k256",
+] }
 alloy-eips = { git = "https://github.com/alloy-rs/alloy", rev = "52d16d3" }
 alloy-primitives = "0.6.4"
 url = "2.5.0"
