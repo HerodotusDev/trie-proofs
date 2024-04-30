@@ -104,6 +104,15 @@ impl ConsensusTx {
         }
     }
 
+    pub fn sender(&self) -> Result<alloy_primitives::Address, alloy_primitives::SignatureError> {
+        match &self.0 {
+            TxEnvelope::Legacy(tx) => tx.recover_signer(),
+            TxEnvelope::Eip2930(tx) => tx.recover_signer(),
+            TxEnvelope::Eip1559(tx) => tx.recover_signer(),
+            TxEnvelope::Eip4844(tx) => tx.recover_signer(),
+        }
+    }
+
     pub fn chain_id(&self) -> Option<ChainId> {
         match &self.0 {
             TxEnvelope::Legacy(tx) => tx.tx().chain_id(),
