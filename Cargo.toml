@@ -15,21 +15,22 @@ exclude = [".github"]
 
 [dependencies]
 tokio = { version = "1.36.0", features = ["rt", "rt-multi-thread", "macros"] }
-# alloy is still yet stable, important to pin the revision
-alloy-network = { git = "https://github.com/alloy-rs/alloy", rev = "52d16d3" }
-alloy-provider = { git = "https://github.com/alloy-rs/alloy", rev = "52d16d3" }
-alloy-rpc-client = { git = "https://github.com/alloy-rs/alloy", rev = "52d16d3" }
-alloy-rpc-types = { git = "https://github.com/alloy-rs/alloy", rev = "52d16d3" }
-alloy-transport = { git = "https://github.com/alloy-rs/alloy", rev = "52d16d3" }
-alloy-transport-http = { git = "https://github.com/alloy-rs/alloy", rev = "52d16d3" }
-alloy-consensus = { git = "https://github.com/alloy-rs/alloy", rev = "52d16d3", features = [
+alloy-primitives = { version = "0.7.6" }
+alloy = { version = "0.1.1", features = [
+    "rpc",
+    "rpc-types",
+    "rpc-client",
+    "network",
+    "providers",
+    "eips",
+    "transports",
+    "transport-http",
+    "consensus",
     "k256",
 ] }
-alloy-eips = { git = "https://github.com/alloy-rs/alloy", rev = "52d16d3" }
-alloy-primitives = "0.6.4"
 url = "2.5.0"
 reqwest = "0.11.26"
-alloy-rlp = "0.3.4"
+alloy-rlp = { version = "0.3.5" }
 eth_trie = "0.4.0"
 ethereum-types = "0.14.1"
 clap = { version = "4.5.4", features = ["derive"] }
