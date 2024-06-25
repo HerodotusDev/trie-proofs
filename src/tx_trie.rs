@@ -1,9 +1,10 @@
 use std::sync::Arc;
 
-use alloy_network::eip2718::Encodable2718;
-use alloy_primitives::{B256, U256};
+use alloy::network::eip2718::Encodable2718;
+use alloy::primitives::{B256, U256};
 use eth_trie::{EthTrie, MemoryDB, Trie as _};
 use ethereum_types::H256;
+use url::Url;
 
 use crate::{
     rpc::RpcProvider,
@@ -33,7 +34,7 @@ impl TxsMptHandler {
     /// Creates a new [`TxsMptHandler`] with a given RPC provider URL.
     ///
     /// This does not initialize the trie yet.
-    pub fn new(url: &str) -> Result<Self, Error> {
+    pub fn new(url: Url) -> Result<Self, Error> {
         let provider = RpcProvider::new(url);
         Ok(Self {
             provider,
@@ -152,8 +153,8 @@ impl TxsMptHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloy_primitives::hex;
-    use alloy_primitives::B256;
+    use alloy::primitives::hex;
+    use alloy::primitives::B256;
 
     const MAINNET_RPC_URL: &str = "https://mainnet.infura.io/v3/720000a7936b45c79d0868f70478e2e9";
 
@@ -166,11 +167,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_tx_mpt_frontier() {
+        let url = Url::parse(MAINNET_RPC_URL).unwrap();
         let target_tx_hash = B256::from(hex!(
             "5c504ed432cb51138bcf09aa5e8a410dd4a1e204ef84bfed1be16dfba1b22060"
         ));
 
-        let mut txs_mpt_handler = TxsMptHandler::new(MAINNET_RPC_URL).unwrap();
+        let mut txs_mpt_handler = TxsMptHandler::new(url).unwrap();
 
         txs_mpt_handler
             .build_tx_tree_from_block(46147)
@@ -183,7 +185,8 @@ mod tests {
             .verify_proof(tx_index, proof.clone())
             .unwrap();
 
-        let mut txs_mpt_handler2 = TxsMptHandler::new(MAINNET_RPC_URL).unwrap();
+        let url = Url::parse(MAINNET_RPC_URL).unwrap();
+        let mut txs_mpt_handler2 = TxsMptHandler::new(url).unwrap();
 
         txs_mpt_handler2
             .build_tx_tree_from_tx_hash(target_tx_hash)
@@ -198,11 +201,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_tx_mpt_byzantium() {
+        let url = Url::parse(MAINNET_RPC_URL).unwrap();
         let target_tx_hash = B256::from(hex!(
             "1fcb1196d8a3bff0bcf13309d2d2bb1a23ae1ac13f5674c801be0ff9254d5ab5"
         ));
 
-        let mut txs_mpt_handler = TxsMptHandler::new(MAINNET_RPC_URL).unwrap();
+        let mut txs_mpt_handler = TxsMptHandler::new(url).unwrap();
 
         txs_mpt_handler
             .build_tx_tree_from_block(4370000)
@@ -215,7 +219,8 @@ mod tests {
             .verify_proof(tx_index, proof.clone())
             .unwrap();
 
-        let mut txs_mpt_handler2 = TxsMptHandler::new(MAINNET_RPC_URL).unwrap();
+        let url = Url::parse(MAINNET_RPC_URL).unwrap();
+        let mut txs_mpt_handler2 = TxsMptHandler::new(url).unwrap();
 
         txs_mpt_handler2
             .build_tx_tree_from_tx_hash(target_tx_hash)
@@ -230,11 +235,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_tx_mpt_2930() {
+        let url = Url::parse(MAINNET_RPC_URL).unwrap();
         let target_tx_hash = B256::from(hex!(
             "aa40dd75b18f375df1ae9a7f7de217fa3bc49b94db3c4da7b3974130990aefef"
         ));
 
-        let mut txs_mpt_handler = TxsMptHandler::new(MAINNET_RPC_URL).unwrap();
+        let mut txs_mpt_handler = TxsMptHandler::new(url).unwrap();
 
         txs_mpt_handler
             .build_tx_tree_from_block(12244000)
@@ -247,7 +253,8 @@ mod tests {
             .verify_proof(tx_index, proof.clone())
             .unwrap();
 
-        let mut txs_mpt_handler2 = TxsMptHandler::new(MAINNET_RPC_URL).unwrap();
+        let url = Url::parse(MAINNET_RPC_URL).unwrap();
+        let mut txs_mpt_handler2 = TxsMptHandler::new(url).unwrap();
 
         txs_mpt_handler2
             .build_tx_tree_from_tx_hash(target_tx_hash)
@@ -262,11 +269,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_tx_mpt_1559() {
+        let url = Url::parse(MAINNET_RPC_URL).unwrap();
         let target_tx_hash = B256::from(hex!(
             "2055b7e01304f87f9412cd44758cd248bc2da2dab95c97026064ffb084711735"
         ));
 
-        let mut txs_mpt_handler = TxsMptHandler::new(MAINNET_RPC_URL).unwrap();
+        let mut txs_mpt_handler = TxsMptHandler::new(url).unwrap();
 
         txs_mpt_handler
             .build_tx_tree_from_block(12965000)
@@ -279,7 +287,8 @@ mod tests {
             .verify_proof(tx_index, proof.clone())
             .unwrap();
 
-        let mut txs_mpt_handler2 = TxsMptHandler::new(MAINNET_RPC_URL).unwrap();
+        let url = Url::parse(MAINNET_RPC_URL).unwrap();
+        let mut txs_mpt_handler2 = TxsMptHandler::new(url).unwrap();
 
         txs_mpt_handler2
             .build_tx_tree_from_tx_hash(target_tx_hash)
@@ -294,12 +303,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_tx_mpt_4844() {
+        let url = Url::parse(MAINNET_RPC_URL).unwrap();
         // 4844 transaction
         let target_tx_hash = B256::from(hex!(
             "9c1fbda4f649ac806ab0faefbe94e1a60282eb374ead6aa01bac042f52b28a8c"
         ));
 
-        let mut txs_mpt_handler = TxsMptHandler::new(MAINNET_RPC_URL).unwrap();
+        let mut txs_mpt_handler = TxsMptHandler::new(url).unwrap();
 
         txs_mpt_handler
             .build_tx_tree_from_block(19426589)
@@ -312,7 +322,8 @@ mod tests {
             .verify_proof(tx_index, proof.clone())
             .unwrap();
 
-        let mut txs_mpt_handler2 = TxsMptHandler::new(MAINNET_RPC_URL).unwrap();
+        let url = Url::parse(MAINNET_RPC_URL).unwrap();
+        let mut txs_mpt_handler2 = TxsMptHandler::new(url).unwrap();
 
         txs_mpt_handler2
             .build_tx_tree_from_tx_hash(target_tx_hash)

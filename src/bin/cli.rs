@@ -72,6 +72,7 @@ async fn main() -> Result<(), Error> {
 }
 
 async fn generate_tx_proof(tx_hash: &str, rpc_url: &str) -> Result<(), Error> {
+    let rpc_url = url::Url::parse(rpc_url).expect("Invalid URL");
     let mut txs_mpt_handler = TxsMptHandler::new(rpc_url)?;
     let tx_hash = B256::from_hex(tx_hash).unwrap();
     txs_mpt_handler.build_tx_tree_from_tx_hash(tx_hash).await?;
@@ -86,6 +87,7 @@ async fn generate_tx_proof(tx_hash: &str, rpc_url: &str) -> Result<(), Error> {
 }
 
 async fn generate_receipt_proof(tx_hash: &str, rpc_url: &str) -> Result<(), Error> {
+    let rpc_url = url::Url::parse(rpc_url).expect("Invalid URL");
     let mut tx_receipts_mpt_handler = TxReceiptsMptHandler::new(rpc_url)?;
     let tx_hash = B256::from_hex(tx_hash).unwrap();
     tx_receipts_mpt_handler

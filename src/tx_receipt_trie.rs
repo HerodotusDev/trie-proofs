@@ -1,9 +1,10 @@
 use std::sync::Arc;
 
-use alloy_network::eip2718::Encodable2718;
-use alloy_primitives::{B256, U256};
+use alloy::network::eip2718::Encodable2718;
+use alloy::primitives::{B256, U256};
 use eth_trie::{EthTrie, MemoryDB, Trie};
 use ethereum_types::H256;
+use url::Url;
 
 use crate::{
     rpc::RpcProvider,
@@ -33,7 +34,7 @@ impl TxReceiptsMptHandler {
     /// Creates a new [`TxReceiptsMptHandler`] with a given RPC provider URL.
     ///
     /// This does not initialize the trie yet.
-    pub fn new(url: &str) -> Result<Self, Error> {
+    pub fn new(url: Url) -> Result<Self, Error> {
         let provider = RpcProvider::new(url);
         Ok(Self {
             provider,
@@ -95,7 +96,6 @@ impl TxReceiptsMptHandler {
             let rlp = tx.0.encoded_2718();
             trie.insert(key.as_slice(), rlp.as_slice())?;
         }
-
         if trie.root_hash()?.as_bytes() != expected_root.as_slice() {
             return Err(Error::UnexpectedRoot);
         }
@@ -158,8 +158,8 @@ impl TxReceiptsMptHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloy_primitives::hex;
-    use alloy_primitives::B256;
+    use alloy::primitives::hex;
+    use alloy::primitives::B256;
 
     const MAINNET_RPC_URL: &str = "https://mainnet.infura.io/v3/720000a7936b45c79d0868f70478e2e9";
 
@@ -171,11 +171,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_tx_receipt_byzantium() {
+        let url = Url::parse(MAINNET_RPC_URL).unwrap();
         let target_tx_hash = B256::from(hex!(
             "1fcb1196d8a3bff0bcf13309d2d2bb1a23ae1ac13f5674c801be0ff9254d5ab5"
         ));
 
-        let mut tx_receipts_mpt_handler = TxReceiptsMptHandler::new(MAINNET_RPC_URL).unwrap();
+        let mut tx_receipts_mpt_handler = TxReceiptsMptHandler::new(url).unwrap();
         tx_receipts_mpt_handler
             .build_tx_receipts_tree_from_block(4370000)
             .await
@@ -193,11 +194,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_tx_receipt_2930() {
+        let url = Url::parse(MAINNET_RPC_URL).unwrap();
         let target_tx_hash = B256::from(hex!(
             "aa40dd75b18f375df1ae9a7f7de217fa3bc49b94db3c4da7b3974130990aefef"
         ));
 
-        let mut tx_receipts_mpt_handler = TxReceiptsMptHandler::new(MAINNET_RPC_URL).unwrap();
+        let mut tx_receipts_mpt_handler = TxReceiptsMptHandler::new(url).unwrap();
         tx_receipts_mpt_handler
             .build_tx_receipts_tree_from_block(12244000)
             .await
@@ -215,11 +217,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_tx_receipt_1559() {
+        let url = Url::parse(MAINNET_RPC_URL).unwrap();
         let target_tx_hash = B256::from(hex!(
             "2055b7e01304f87f9412cd44758cd248bc2da2dab95c97026064ffb084711735"
         ));
 
-        let mut tx_receipts_mpt_handler = TxReceiptsMptHandler::new(MAINNET_RPC_URL).unwrap();
+        let mut tx_receipts_mpt_handler = TxReceiptsMptHandler::new(url).unwrap();
         tx_receipts_mpt_handler
             .build_tx_receipts_tree_from_block(12965000)
             .await
@@ -237,12 +240,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_tx_receipt_4844() {
+        let url = Url::parse(MAINNET_RPC_URL).unwrap();
         // 4844 transaction
         let target_tx_hash = B256::from(hex!(
             "9c1fbda4f649ac806ab0faefbe94e1a60282eb374ead6aa01bac042f52b28a8c"
         ));
 
-        let mut tx_receipts_mpt_handler = TxReceiptsMptHandler::new(MAINNET_RPC_URL).unwrap();
+        let mut tx_receipts_mpt_handler = TxReceiptsMptHandler::new(url).unwrap();
         tx_receipts_mpt_handler
             .build_tx_receipts_tree_from_block(19426589)
             .await

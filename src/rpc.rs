@@ -1,22 +1,19 @@
 use crate::Error;
-use alloy_network::Ethereum;
-use alloy_primitives::B256;
-use alloy_provider::{Provider, ProviderBuilder, RootProvider};
-use alloy_rpc_client::RpcClient;
-use alloy_rpc_types::{BlockTransactions, Transaction, TransactionReceipt};
-use alloy_transport::{RpcError, TransportErrorKind};
-use alloy_transport_http::Http;
-use reqwest::Client;
+use alloy::network::Ethereum;
+use alloy::primitives::B256;
+use alloy::providers::{Provider, RootProvider};
+
+use alloy::rpc::types::{BlockTransactions, Transaction, TransactionReceipt};
+use alloy::transports::http::{Client, Http};
+use alloy::transports::{RpcError, TransportErrorKind};
 
 pub(crate) struct RpcProvider {
-    provider: RootProvider<Ethereum, Http<Client>>,
+    provider: RootProvider<Http<Client>, Ethereum>,
 }
 
 impl RpcProvider {
-    pub(crate) fn new(url: &str) -> Self {
-        let http = Http::<Client>::new(url.to_string().parse().unwrap());
-        let provider = ProviderBuilder::<_, Ethereum>::new()
-            .provider(RootProvider::new(RpcClient::new(http, true)));
+    pub(crate) fn new(rpc_url: url::Url) -> Self {
+        let provider = RootProvider::new_http(rpc_url);
         Self { provider }
     }
 
@@ -26,7 +23,10 @@ impl RpcProvider {
     ) -> Result<(Vec<Transaction>, B256), Error> {
         let block = self
             .provider
-            .get_block(block_number.into(), true)
+            .get_block(
+                block_number.into(),
+                alloy::rpc::types::BlockTransactionsKind::Full,
+            )
             .await?
             .ok_or_else(|| Error::BlockNotFound)?;
 
@@ -44,7 +44,10 @@ impl RpcProvider {
     ) -> Result<(Vec<TransactionReceipt>, B256), Error> {
         let block = self
             .provider
-            .get_block(block_number.into(), true)
+            .get_block(
+                block_number.into(),
+                alloy::rpc::types::BlockTransactionsKind::Full,
+            )
             .await?
             .ok_or_else(|| Error::BlockNotFound)?;
 
@@ -58,10 +61,14 @@ impl RpcProvider {
     }
 
     pub(crate) async fn get_tx_index_by_hash(&self, tx_hash: B256) -> Result<u64, Error> {
-        let tx = self.provider.get_transaction_by_hash(tx_hash).await?;
+        let tx = self
+            .provider
+            .get_transaction_by_hash(tx_hash)
+            .await?
+            .expect("tx not found");
 
         let index: u64 = match tx.transaction_index {
-            Some(index) => index.try_into().map_err(|_| Error::TxNotFound)?,
+            Some(index) => index,
             None => return Err(Error::TxNotFound),
         };
 
@@ -69,10 +76,14 @@ impl RpcProvider {
     }
 
     pub(crate) async fn get_tx_block_height(&self, tx_hash: B256) -> Result<u64, Error> {
-        let tx = self.provider.get_transaction_by_hash(tx_hash).await?;
+        let tx = self
+            .provider
+            .get_transaction_by_hash(tx_hash)
+            .await?
+            .expect("tx not found");
 
         let height: u64 = match tx.block_number {
-            Some(height) => height.try_into().map_err(|_| Error::TxNotFound)?,
+            Some(height) => height,
             None => return Err(Error::TxNotFound),
         };
 

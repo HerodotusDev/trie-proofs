@@ -1,4 +1,4 @@
-use alloy_transport::{RpcError, TransportErrorKind};
+use alloy::transports::{RpcError, TransportErrorKind};
 use eth_trie::TrieError;
 
 mod rpc;
@@ -10,6 +10,7 @@ pub mod tx_trie;
 #[derive(Debug)]
 pub enum Error {
     Trie(TrieError),
+    Eip(alloy::eips::eip2718::Eip2718Error),
     Rlp(alloy_rlp::Error),
     RPC(RpcError<TransportErrorKind>),
     TxNotFound,
