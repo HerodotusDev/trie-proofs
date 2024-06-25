@@ -96,7 +96,6 @@ impl TxReceiptsMptHandler {
             let rlp = tx.0.encoded_2718();
             trie.insert(key.as_slice(), rlp.as_slice())?;
         }
-
         if trie.root_hash()?.as_bytes() != expected_root.as_slice() {
             return Err(Error::UnexpectedRoot);
         }

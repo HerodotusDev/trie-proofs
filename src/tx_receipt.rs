@@ -20,12 +20,12 @@ impl ConsensusTxReceipt {
         Ok(ConsensusTxReceipt(envelope))
     }
 
-    pub fn success(&self) -> bool {
+    pub fn status(&self) -> &Eip658Value {
         match &self.0 {
-            ReceiptEnvelope::Legacy(receipt) => receipt.receipt.status(),
-            ReceiptEnvelope::Eip2930(receipt) => receipt.receipt.status(),
-            ReceiptEnvelope::Eip1559(receipt) => receipt.receipt.status(),
-            ReceiptEnvelope::Eip4844(receipt) => receipt.receipt.status(),
+            ReceiptEnvelope::Legacy(receipt) => receipt.receipt.status_or_post_state(),
+            ReceiptEnvelope::Eip2930(receipt) => receipt.receipt.status_or_post_state(),
+            ReceiptEnvelope::Eip1559(receipt) => receipt.receipt.status_or_post_state(),
+            ReceiptEnvelope::Eip4844(receipt) => receipt.receipt.status_or_post_state(),
             _ => todo!(),
         }
     }
@@ -71,7 +71,7 @@ impl TryFrom<RpcTxReceipt> for ConsensusTxReceipt {
             TxType::Legacy => {
                 let res = ReceiptEnvelope::Legacy(ReceiptWithBloom {
                     receipt: Receipt {
-                        status: Eip658Value::Eip658(tx.success()),
+                        status: Eip658Value::from(tx.status()),
                         cumulative_gas_used: tx.cumulative_gas_used(),
                         logs: tx.logs(),
                     },
@@ -82,7 +82,7 @@ impl TryFrom<RpcTxReceipt> for ConsensusTxReceipt {
             TxType::Eip2930 => {
                 let res = ReceiptEnvelope::Eip2930(ReceiptWithBloom {
                     receipt: Receipt {
-                        status: Eip658Value::Eip658(tx.success()),
+                        status: Eip658Value::from(tx.status()),
                         cumulative_gas_used: tx.cumulative_gas_used(),
                         logs: tx.logs(),
                     },
@@ -93,7 +93,7 @@ impl TryFrom<RpcTxReceipt> for ConsensusTxReceipt {
             TxType::Eip1559 => {
                 let res = ReceiptEnvelope::Eip1559(ReceiptWithBloom {
                     receipt: Receipt {
-                        status: Eip658Value::Eip658(tx.success()),
+                        status: Eip658Value::from(tx.status()),
                         cumulative_gas_used: tx.cumulative_gas_used(),
                         logs: tx.logs(),
                     },
@@ -104,7 +104,7 @@ impl TryFrom<RpcTxReceipt> for ConsensusTxReceipt {
             TxType::Eip4844 => {
                 let res = ReceiptEnvelope::Eip4844(ReceiptWithBloom {
                     receipt: Receipt {
-                        status: Eip658Value::Eip658(tx.success()),
+                        status: Eip658Value::from(tx.status()),
                         cumulative_gas_used: tx.cumulative_gas_used(),
                         logs: tx.logs(),
                     },
@@ -121,12 +121,12 @@ impl RpcTxReceipt {
         Ok(self.0.transaction_type())
     }
 
-    fn success(&self) -> bool {
+    fn status(&self) -> bool {
         self.0.status()
     }
 
     fn cumulative_gas_used(&self) -> u128 {
-        self.0.gas_used
+        self.0.inner.cumulative_gas_used()
     }
 
     fn logs(&self) -> Vec<alloy::primitives::Log<LogData>> {
@@ -136,7 +136,6 @@ impl RpcTxReceipt {
             let result = rpc_log.inner;
             logs.push(result);
         }
-
         logs
     }
 
