@@ -218,11 +218,7 @@ impl TryFrom<RpcTx> for ConsensusTx {
         match &tx.version()? {
             TxType::Legacy => {
                 let to = tx.to();
-                let gas_price: u128 = if let Some(gas_price) = tx.0.gas_price {
-                    gas_price
-                } else {
-                    0
-                };
+                let gas_price: u128 = tx.0.gas_price.unwrap_or_default();
 
                 let res = TxLegacy {
                     chain_id,
@@ -237,11 +233,7 @@ impl TryFrom<RpcTx> for ConsensusTx {
             }
             TxType::Eip2930 => {
                 let to = tx.to();
-                let gas_price: u128 = if let Some(gas_price) = tx.0.gas_price {
-                    gas_price
-                } else {
-                    0
-                };
+                let gas_price: u128 = tx.0.gas_price.unwrap_or_default();
 
                 let res = TxEip2930 {
                     chain_id: chain_id.unwrap(),
