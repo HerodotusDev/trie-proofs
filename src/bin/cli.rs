@@ -7,7 +7,7 @@ use serde::Serialize;
 use serde_with::serde_as;
 
 use eth_trie_proofs::tx_receipt_trie::TxReceiptsMptHandler;
-use eth_trie_proofs::Error;
+use eth_trie_proofs::EthTrieError;
 
 #[derive(Debug, Parser)]
 #[command(name = "eth-trie-proof")]
@@ -45,7 +45,7 @@ struct MptProof {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Error> {
+async fn main() -> Result<(), EthTrieError> {
     let cli = Cli::parse();
     match cli.command {
         Commands::Tx { tx_hash, rpc_url } => {
@@ -71,7 +71,7 @@ async fn main() -> Result<(), Error> {
     Ok(())
 }
 
-async fn generate_tx_proof(tx_hash: &str, rpc_url: &str) -> Result<(), Error> {
+async fn generate_tx_proof(tx_hash: &str, rpc_url: &str) -> Result<(), EthTrieError> {
     let rpc_url = url::Url::parse(rpc_url).expect("Invalid URL");
     let mut txs_mpt_handler = TxsMptHandler::new(rpc_url)?;
     let tx_hash = B256::from_hex(tx_hash).unwrap();
@@ -86,7 +86,7 @@ async fn generate_tx_proof(tx_hash: &str, rpc_url: &str) -> Result<(), Error> {
     Ok(())
 }
 
-async fn generate_receipt_proof(tx_hash: &str, rpc_url: &str) -> Result<(), Error> {
+async fn generate_receipt_proof(tx_hash: &str, rpc_url: &str) -> Result<(), EthTrieError> {
     let rpc_url = url::Url::parse(rpc_url).expect("Invalid URL");
     let mut tx_receipts_mpt_handler = TxReceiptsMptHandler::new(rpc_url)?;
     let tx_hash = B256::from_hex(tx_hash).unwrap();

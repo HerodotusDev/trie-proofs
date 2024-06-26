@@ -9,7 +9,7 @@ use url::Url;
 use crate::{
     rpc::RpcProvider,
     tx::{ConsensusTx, RpcTx},
-    Error,
+    EthTrieError,
 };
 
 /// Represents a handler for transactions Merkle Patricia Trie (MPT) operations,
@@ -34,7 +34,7 @@ impl TxsMptHandler {
     /// Creates a new [`TxsMptHandler`] with a given RPC provider URL.
     ///
     /// This does not initialize the trie yet.
-    pub fn new(url: Url) -> Result<Self, Error> {
+    pub fn new(url: Url) -> Result<Self, EthTrieError> {
         let provider = RpcProvider::new(url);
         Ok(Self {
             provider,
@@ -45,20 +45,20 @@ impl TxsMptHandler {
     /// Retrieves the index of a transaction within the trie based on its hash.
     ///
     /// Returns an error if the trie is not found or the transaction does not exist.
-    pub fn tx_hash_to_tx_index(&self, tx_hash: B256) -> Result<u64, Error> {
-        let target_trie = self.trie.as_ref().ok_or(Error::TrieNotFound)?;
+    pub fn tx_hash_to_tx_index(&self, tx_hash: B256) -> Result<u64, EthTrieError> {
+        let target_trie = self.trie.as_ref().ok_or(EthTrieError::TrieNotFound)?;
         let tx_index = target_trie
             .elements
             .iter()
             .position(|tx| tx.0.trie_hash() == tx_hash)
-            .ok_or(Error::TxNotFound)?;
+            .ok_or(EthTrieError::TxNotFound)?;
         Ok(tx_index as u64)
     }
 
     /// Builds the transaction trie from a specific transaction hash.
     ///
     /// This fetches the block height for the transaction and delegates to [`build_tx_tree_from_block`].
-    pub async fn build_tx_tree_from_tx_hash(&mut self, tx_hash: B256) -> Result<(), Error> {
+    pub async fn build_tx_tree_from_tx_hash(&mut self, tx_hash: B256) -> Result<(), EthTrieError> {
         let height = self.provider.get_tx_block_height(tx_hash).await?;
         self.build_tx_tree_from_block(height).await?;
         Ok(())
@@ -67,7 +67,10 @@ impl TxsMptHandler {
     /// Builds the transactions trie from a given block number.
     ///
     /// This involves fetching the transactions for the block and [`build_trie`].
-    pub async fn build_tx_tree_from_block(&mut self, block_number: u64) -> Result<(), Error> {
+    pub async fn build_tx_tree_from_block(
+        &mut self,
+        block_number: u64,
+    ) -> Result<(), EthTrieError> {
         let (txs, tx_root) = self.provider.get_block_transactions(block_number).await?;
         let converted_txs: Vec<ConsensusTx> = txs
             .iter()
@@ -81,7 +84,11 @@ impl TxsMptHandler {
     /// Constructs the MPT from a vector of [`ConsensusTx`] and an expected root hash.
     ///
     /// Verifies the constructed trie's root against the expected root, returning an error if they do not match.
-    pub fn build_trie(&mut self, txs: Vec<ConsensusTx>, expected_root: B256) -> Result<(), Error> {
+    pub fn build_trie(
+        &mut self,
+        txs: Vec<ConsensusTx>,
+        expected_root: B256,
+    ) -> Result<(), EthTrieError> {
         let memdb = Arc::new(MemoryDB::new(true));
         let mut trie = EthTrie::new(memdb.clone());
 
@@ -92,7 +99,7 @@ impl TxsMptHandler {
         }
 
         if trie.root_hash()?.as_bytes() != expected_root.as_slice() {
-            return Err(Error::UnexpectedRoot);
+            return Err(EthTrieError::UnexpectedRoot);
         }
 
         let result_mpt = TxsMpt {
@@ -106,8 +113,8 @@ impl TxsMptHandler {
     }
 
     /// Generates a proof for a transaction at a given index within the trie.
-    pub fn get_proof(&mut self, tx_index: u64) -> Result<Vec<Vec<u8>>, Error> {
-        let target_trie = self.trie.as_mut().ok_or(Error::TrieNotFound)?;
+    pub fn get_proof(&mut self, tx_index: u64) -> Result<Vec<Vec<u8>>, EthTrieError> {
+        let target_trie = self.trie.as_mut().ok_or(EthTrieError::TrieNotFound)?;
         let key = alloy_rlp::encode(U256::from(tx_index));
         let proof = target_trie.trie.get_proof(key.as_slice())?;
 
@@ -115,37 +122,41 @@ impl TxsMptHandler {
     }
 
     /// Verifies a proof for a transaction at a given index against the stored trie.
-    pub fn verify_proof(&self, tx_index: u64, proof: Vec<Vec<u8>>) -> Result<Vec<u8>, Error> {
-        let target_trie = self.trie.as_ref().ok_or(Error::TrieNotFound)?;
+    pub fn verify_proof(
+        &self,
+        tx_index: u64,
+        proof: Vec<Vec<u8>>,
+    ) -> Result<Vec<u8>, EthTrieError> {
+        let target_trie = self.trie.as_ref().ok_or(EthTrieError::TrieNotFound)?;
         match target_trie.trie.verify_proof(
             H256::from_slice(target_trie.root.as_slice()),
             alloy_rlp::encode(U256::from(tx_index)).as_slice(),
             proof,
         ) {
             Ok(Some(result)) => Ok(result),
-            _ => Err(Error::InvalidMPTProof),
+            _ => Err(EthTrieError::InvalidMPTProof),
         }
     }
 
     /// Retrieves a [`ConsensusTx`] by its index within the trie.
-    pub fn get_tx(&self, tx_index: u64) -> Result<ConsensusTx, Error> {
-        let target_trie = self.trie.as_ref().ok_or(Error::TrieNotFound)?;
+    pub fn get_tx(&self, tx_index: u64) -> Result<ConsensusTx, EthTrieError> {
+        let target_trie = self.trie.as_ref().ok_or(EthTrieError::TrieNotFound)?;
         target_trie
             .elements
             .get(tx_index as usize)
-            .ok_or(Error::TxNotFound)
+            .ok_or(EthTrieError::TxNotFound)
             .cloned()
     }
 
     /// Retrieves all elements within the trie.
-    pub fn get_elements(&self) -> Result<Vec<ConsensusTx>, Error> {
-        let target_trie = self.trie.as_ref().ok_or(Error::TrieNotFound)?;
+    pub fn get_elements(&self) -> Result<Vec<ConsensusTx>, EthTrieError> {
+        let target_trie = self.trie.as_ref().ok_or(EthTrieError::TrieNotFound)?;
         Ok(target_trie.elements.to_vec())
     }
 
     /// Retrieves the root hash of the trie.
-    pub fn get_root(&self) -> Result<B256, Error> {
-        let target_trie = self.trie.as_ref().ok_or(Error::TrieNotFound)?;
+    pub fn get_root(&self) -> Result<B256, EthTrieError> {
+        let target_trie = self.trie.as_ref().ok_or(EthTrieError::TrieNotFound)?;
         Ok(target_trie.root)
     }
 }

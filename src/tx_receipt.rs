@@ -1,4 +1,4 @@
-use crate::Error;
+use crate::EthTrieError;
 use alloy::consensus::{Eip658Value, Receipt, ReceiptWithBloom, TxReceipt};
 use alloy::consensus::{ReceiptEnvelope, TxType};
 use alloy::eips::eip2718::Decodable2718;
@@ -15,8 +15,8 @@ impl ConsensusTxReceipt {
         self.0.encoded_2718()
     }
 
-    pub fn rlp_decode(mut data: &[u8]) -> Result<Self, Error> {
-        let envelope = ReceiptEnvelope::decode_2718(&mut data).map_err(Error::Eip)?;
+    pub fn rlp_decode(mut data: &[u8]) -> Result<Self, EthTrieError> {
+        let envelope = ReceiptEnvelope::decode_2718(&mut data).map_err(EthTrieError::Eip)?;
         Ok(ConsensusTxReceipt(envelope))
     }
 
@@ -65,8 +65,8 @@ impl ConsensusTxReceipt {
 pub(crate) struct RpcTxReceipt(pub TransactionReceipt);
 
 impl TryFrom<RpcTxReceipt> for ConsensusTxReceipt {
-    type Error = Error;
-    fn try_from(tx: RpcTxReceipt) -> Result<ConsensusTxReceipt, Error> {
+    type Error = EthTrieError;
+    fn try_from(tx: RpcTxReceipt) -> Result<ConsensusTxReceipt, EthTrieError> {
         match &tx.version()? {
             TxType::Legacy => {
                 let res = ReceiptEnvelope::Legacy(ReceiptWithBloom {
@@ -117,7 +117,7 @@ impl TryFrom<RpcTxReceipt> for ConsensusTxReceipt {
 }
 
 impl RpcTxReceipt {
-    fn version(&self) -> Result<TxType, Error> {
+    fn version(&self) -> Result<TxType, EthTrieError> {
         Ok(self.0.transaction_type())
     }
 
