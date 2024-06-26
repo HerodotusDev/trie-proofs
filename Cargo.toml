@@ -37,6 +37,7 @@ clap = { version = "4.5.4", features = ["derive"] }
 serde = "1.0.197"
 serde_with = { version = "3.7.0", features = ["hex"] }
 serde_json = "1.0.114"
+thiserror = "1.0"
 
 [[bin]]
 name = "etp-cli"

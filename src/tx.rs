@@ -1,4 +1,4 @@
-use crate::{Error, Field};
+use crate::{EthTrieError, Field};
 use alloy::consensus::{
     SignableTransaction, TxEip1559, TxEip2930, TxEip4844, TxEnvelope, TxLegacy, TxType,
 };
@@ -18,8 +18,8 @@ impl ConsensusTx {
         self.0.encoded_2718()
     }
 
-    pub fn rlp_decode(mut data: &[u8]) -> Result<Self, Error> {
-        let tx = TxEnvelope::decode_2718(&mut data).map_err(Error::Eip)?;
+    pub fn rlp_decode(mut data: &[u8]) -> Result<Self, EthTrieError> {
+        let tx = TxEnvelope::decode_2718(&mut data).map_err(EthTrieError::Eip)?;
         Ok(ConsensusTx(tx))
     }
 
@@ -207,8 +207,8 @@ impl ConsensusTx {
 pub(crate) struct RpcTx(pub Transaction);
 
 impl TryFrom<RpcTx> for ConsensusTx {
-    type Error = Error;
-    fn try_from(tx: RpcTx) -> Result<ConsensusTx, Error> {
+    type Error = EthTrieError;
+    fn try_from(tx: RpcTx) -> Result<ConsensusTx, EthTrieError> {
         let chain_id = tx.chain_id();
         let nonce: u64 = tx.0.nonce;
         let gas_limit: u128 = tx.0.gas;
@@ -267,13 +267,13 @@ impl TryFrom<RpcTx> for ConsensusTx {
             TxType::Eip4844 => {
                 let to = match tx.to() {
                     TxKind::Call(to) => to,
-                    TxKind::Create => return Err(Error::InvalidTxVersion),
+                    TxKind::Create => return Err(EthTrieError::InvalidTxVersion),
                 };
                 let blob_versioned_hashes = tx
                     .clone()
                     .0
                     .blob_versioned_hashes
-                    .ok_or(Error::ConversionError(Field::Input))?;
+                    .ok_or(EthTrieError::ConversionError(Field::Input))?;
                 let max_fee_per_gas = tx.max_fee_per_gas()?;
                 let max_priority_fee_per_gas = tx.max_priority_fee_per_gas()?;
                 let max_fee_per_blob_gas = tx.max_fee_per_blob_gas()?;
@@ -309,18 +309,18 @@ impl RpcTx {
         }
     }
 
-    fn version(&self) -> Result<TxType, Error> {
+    fn version(&self) -> Result<TxType, EthTrieError> {
         match self.0.transaction_type {
             Some(0) => Ok(TxType::Legacy),
             Some(1) => Ok(TxType::Eip2930),
             Some(2) => Ok(TxType::Eip1559),
             Some(3) => Ok(TxType::Eip4844),
             None => Ok(TxType::Legacy),
-            _ => Err(Error::InvalidTxVersion),
+            _ => Err(EthTrieError::InvalidTxVersion),
         }
     }
 
-    fn max_fee_per_gas(&self) -> Result<u128, Error> {
+    fn max_fee_per_gas(&self) -> Result<u128, EthTrieError> {
         if let Some(value) = self.0.max_fee_per_gas {
             Ok(value)
         } else {
@@ -328,7 +328,7 @@ impl RpcTx {
         }
     }
 
-    fn max_priority_fee_per_gas(&self) -> Result<u128, Error> {
+    fn max_priority_fee_per_gas(&self) -> Result<u128, EthTrieError> {
         if let Some(value) = self.0.max_priority_fee_per_gas {
             Ok(value)
         } else {
@@ -336,7 +336,7 @@ impl RpcTx {
         }
     }
 
-    fn max_fee_per_blob_gas(&self) -> Result<u128, Error> {
+    fn max_fee_per_blob_gas(&self) -> Result<u128, EthTrieError> {
         if let Some(value) = self.0.max_fee_per_blob_gas {
             Ok(value)
         } else {
@@ -344,7 +344,7 @@ impl RpcTx {
         }
     }
 
-    fn signature(&self) -> Result<Signature, Error> {
+    fn signature(&self) -> Result<Signature, EthTrieError> {
         if let Some(signature) = self.0.signature {
             let sig = Signature::from_rs_and_parity(
                 signature.r,
@@ -353,23 +353,23 @@ impl RpcTx {
                     signature
                         .v
                         .try_into()
-                        .map_err(|_| Error::ConversionError(Field::Signature))?,
+                        .map_err(|_| EthTrieError::ConversionError(Field::Signature))?,
                 ),
             )
-            .map_err(|_| Error::ConversionError(Field::Signature))?;
+            .map_err(|_| EthTrieError::ConversionError(Field::Signature))?;
 
             Ok(sig)
         } else {
-            Err(Error::ConversionError(Field::Signature))
+            Err(EthTrieError::ConversionError(Field::Signature))
         }
     }
 
-    fn access_list(&self) -> Result<AccessList, Error> {
+    fn access_list(&self) -> Result<AccessList, EthTrieError> {
         if let Some(al) = self.0.access_list.clone() {
             let target_list_items: Vec<AccessListItem> = Vec::<AccessListItem>::from(al);
             Ok(AccessList(target_list_items))
         } else {
-            Err(Error::ConversionError(Field::AccessList))
+            Err(EthTrieError::ConversionError(Field::AccessList))
         }
     }
 }
