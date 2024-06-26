@@ -1,6 +1,6 @@
 [package]
 name = "eth-trie-proofs"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "Ethereum Transaction Trie Proofs"
 readme = "README.md"
