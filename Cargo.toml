@@ -29,7 +29,7 @@ alloy = { version = "0.1.1", features = [
     "k256",
 ] }
 url = "2.5.0"
-reqwest = "0.11.26"
+reqwest = { version = "0.11.26", features = ["json"] }
 alloy-rlp = { version = "0.3.5" }
 eth_trie = "0.4.0"
 ethereum-types = "0.14.1"
@@ -38,6 +38,7 @@ serde = "1.0.197"
 serde_with = { version = "3.7.0", features = ["hex"] }
 serde_json = "1.0.114"
 thiserror = "1.0"
+starknet-types-core = "0.1.0"
 
 [[bin]]
 name = "etp-cli"
