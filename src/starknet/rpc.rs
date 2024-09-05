@@ -1,6 +1,7 @@
 use alloy_primitives::BlockNumber;
+use pathfinder_merkle_tree::TransactionOrEventTree;
 use serde_json::json;
-use starknet_types_core::felt::Felt;
+use starknet_types_core::felt::Felt as CoreFelt;
 use starknet_types_rpc::{BlockWithTxHashes, BlockWithTxs};
 
 use crate::SnTrieError;
@@ -24,12 +25,7 @@ impl RpcProvider {
     pub(crate) async fn get_block_transactions(
         &self,
         block_number: BlockNumber,
-    ) -> Result<(), SnTrieError> {
-        Ok(())
-    }
-
-    /// Fetches proof (account or storage) for a given block number
-    async fn get_block_with_txs(&self, block_number: BlockNumber) -> Result<(), SnTrieError> {
+    ) -> Result<BlockWithTxs<CoreFelt>, SnTrieError> {
         let request = json!({
             "jsonrpc": "2.0",
             "id": "0",
@@ -47,17 +43,29 @@ impl RpcProvider {
                 ["result"]
                 .clone();
 
-        let get_proof_output: BlockWithTxs<Felt> = serde_json::from_value(response_json).unwrap();
-        let protocol = get_proof_output.block_header.starknet_version;
-        let tx_final_hashes: Vec<Felt> = get_proof_output
-            .transactions
-            .iter()
-            .map(|t| calculate_transaction_hash(t, &protocol))
-            .collect();
+        let get_proof_output: BlockWithTxs<CoreFelt> =
+            serde_json::from_value(response_json).unwrap();
+        // let protocol = get_proof_output.block_header.starknet_version;
+        // let tx_final_hashes: Vec<CoreFelt> = get_proof_output
+        //     .transactions
+        //     .iter()
+        //     .map(|t| calculate_transaction_hash(t, &protocol))
+        //     .collect();
 
-        println!("tx_final:{:?}", tx_final_hashes);
+        // println!("tx_final:{:?}", tx_final_hashes);
 
-        Ok(())
+        // let mut tree = TransactionOrEventTree::default();
+
+        // for (idx, hash) in tx_final_hashes.into_iter().enumerate() {
+        //     let felt_hash = pathfinder_crypto::Felt::from_be_bytes(hash.to_bytes_be()).unwrap();
+        //     let idx: u64 = idx.try_into().unwrap();
+        //     tree.set(idx, felt_hash).unwrap();
+        // }
+
+        // let commit = tree.commit().unwrap();
+        // println!("commit:{:?}", commit);
+
+        Ok(get_proof_output)
     }
 }
 
@@ -91,6 +99,6 @@ mod tests {
         // provider.get_block_with_txs(34999).await;
 
         // provider.get_block_with_txs(35000).await;
-        provider.get_block_with_txs(7).await;
+        provider.get_block_transactions(7).await;
     }
 }
