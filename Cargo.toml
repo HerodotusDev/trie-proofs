@@ -38,7 +38,13 @@ serde = "1.0.197"
 serde_with = { version = "3.7.0", features = ["hex"] }
 serde_json = "1.0.114"
 thiserror = "1.0"
-starknet-types-core = "0.1.0"
+starknet-types-core = { git = "https://github.com/starknet-io/types-rs.git", version = "0.1.0", default-features = false, features = [
+    "serde",
+    "hash",
+] }
+starknet-types-rpc = { version = "0.7.1", git = "https://github.com/starknet-io/types-rs" }
+pathfinder-common = { git = "https://github.com/eqlabs/pathfinder.git", rev = "4a18125cae2c8fb1284e9e8fd23acf5d5bcfde18" }
+time = "0.3.36"
 
 [[bin]]
 name = "etp-cli"
