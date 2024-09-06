@@ -1,13 +1,11 @@
 use alloy_primitives::BlockNumber;
-
-use pathfinder_merkle_tree::TransactionOrEventTree;
 use serde_json::{json, Value};
 use starknet_types_core::felt::Felt as CoreFelt;
 use starknet_types_rpc::BlockWithTxs;
 
 use crate::SnTrieError;
 
-use super::{block::StarknetBlock, tx_hash::calculate_transaction_hash};
+use super::block::StarknetBlock;
 
 pub struct RpcProvider<'a> {
     url: &'a str,
@@ -35,7 +33,7 @@ impl<'a> RpcProvider<'a> {
             }
         });
 
-        let url = self.url.clone();
+        let url = self.url;
         let provider = reqwest::Client::new();
         let response = provider.post(url).json(&request).send().await.unwrap();
         let response_json =
@@ -48,25 +46,6 @@ impl<'a> RpcProvider<'a> {
 
         let gateway = GatewayProvider::new(self.gateway_url.to_string());
         let gateway_block = gateway.get_block(block_number).await.unwrap();
-        // let protocol = get_proof_output.clone().block_header.starknet_version;
-        // let tx_final_hashes: Vec<CoreFelt> = get_proof_output
-        //     .transactions
-        //     .iter()
-        //     .map(|t| calculate_transaction_hash(t, &protocol))
-        //     .collect();
-
-        // println!("tx_final:{:?}", tx_final_hashes);
-
-        // let mut tree = TransactionOrEventTree::default();
-
-        // for (idx, hash) in tx_final_hashes.into_iter().enumerate() {
-        //     let felt_hash = pathfinder_crypto::Felt::from_be_bytes(hash.to_bytes_be()).unwrap();
-        //     let idx: u64 = idx.try_into().unwrap();
-        //     tree.set(idx, felt_hash).unwrap();
-        // }
-
-        // let commit = tree.commit().unwrap();
-        // println!("commit:{:?}", commit);
 
         Ok((get_proof_output, gateway_block.transaction_commitment))
     }
@@ -103,7 +82,6 @@ impl GatewayProvider {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::str::FromStr;
 
     const PATHFINDER_URL: &str = "https://pathfinder.sepolia.iosis.tech/";
     const GATEWAY_URL: &str = "https://alpha-sepolia.starknet.io";
