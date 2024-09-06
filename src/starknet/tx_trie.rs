@@ -1,9 +1,7 @@
-use pathfinder_common::hash::PedersenHash;
+use pathfinder_common::{hash::PedersenHash, trie::TrieNode};
 use pathfinder_crypto::Felt as PathfinderFelt;
-use pathfinder_merkle_tree::{tree::MerkleTree, StatelessStorage, TransactionOrEventTree};
+use pathfinder_merkle_tree::{Membership, TransactionOrEventTree};
 use starknet_types_core::felt::Felt;
-use starknet_types_rpc::TxnWithHash;
-use url::Url;
 
 use crate::SnTrieError;
 
@@ -16,7 +14,7 @@ pub struct TxsMptHandler<'a> {
 
 pub struct TxsMpt {
     pub trie: TransactionOrEventTree<PedersenHash>,
-    elements: Vec<Felt>,
+    pub elements: Vec<Felt>,
     root: Felt,
     root_idx: u64,
 }
@@ -70,8 +68,51 @@ impl<'a> TxsMptHandler<'a> {
             root: converted_commit,
             root_idx,
         };
+
+        self.trie = Some(result_mpt);
         Ok(())
     }
 
-    pub fn get_proof(&mut self, tx_index: u64) -> Result<Vec<Vec<u8>>, SnTrieError> {}
+    pub fn get_proof(&self, tx_index: u64) -> Result<Vec<TrieNode>, SnTrieError> {
+        let idx: PathfinderFelt = PathfinderFelt::from_u64(tx_index);
+        let root_idx = self.get_root_idx()?;
+        let proof = self
+            .trie
+            .as_ref()
+            .ok_or(SnTrieError::TrieNotFound)?
+            .trie
+            .get_proof(root_idx, idx.view_bits().to_owned())
+            .unwrap()
+            .unwrap();
+
+        Ok(proof)
+    }
+
+    fn get_root_idx(&self) -> Result<u64, SnTrieError> {
+        Ok(self
+            .trie
+            .as_ref()
+            .ok_or(SnTrieError::TrieNotFound)?
+            .root_idx)
+    }
+
+    pub fn verify_proof(
+        &self,
+        tx_index: u64,
+        proof: Vec<TrieNode>,
+    ) -> Result<Membership, SnTrieError> {
+        let idx: PathfinderFelt = PathfinderFelt::from_u64(tx_index);
+        // let root_idx = self.get_root_idx()?;
+        let root = self.trie.as_ref().ok_or(SnTrieError::TrieNotFound)?.root;
+        let converted_root: PathfinderFelt =
+            PathfinderFelt::from_be_bytes(root.to_bytes_be()).unwrap();
+        let result = TransactionOrEventTree::<PedersenHash>::verify_proof(
+            converted_root,
+            idx.view_bits(),
+            idx,
+            &proof,
+        )
+        .unwrap();
+        Ok(result)
+    }
 }

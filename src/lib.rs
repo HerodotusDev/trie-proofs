@@ -15,6 +15,8 @@ pub mod tx_trie;
 pub enum SnTrieError {
     #[error("Starknet error: {0}")]
     GatewayError(u16),
+    #[error("Trie not found")]
+    TrieNotFound,
 }
 
 #[derive(Error, Debug)]
