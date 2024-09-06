@@ -1,31 +1,31 @@
 use alloy_primitives::BlockNumber;
+
 use pathfinder_merkle_tree::TransactionOrEventTree;
-use serde_json::json;
+use serde_json::{json, Value};
 use starknet_types_core::felt::Felt as CoreFelt;
-use starknet_types_rpc::{BlockWithTxHashes, BlockWithTxs};
+use starknet_types_rpc::BlockWithTxs;
 
 use crate::SnTrieError;
 
-use super::tx_hash::calculate_transaction_hash;
+use super::{block::StarknetBlock, tx_hash::calculate_transaction_hash};
 
-pub struct RpcProvider {
-    provider: reqwest::Client,
-    url: url::Url,
+pub struct RpcProvider<'a> {
+    url: &'a str,
+    gateway_url: &'a str,
 }
 
-impl RpcProvider {
-    pub(crate) fn new(rpc_url: url::Url) -> Self {
-        let provider = reqwest::Client::new();
+impl<'a> RpcProvider<'a> {
+    pub(crate) fn new(rpc_url: &'a str, gateway_url: &'a str) -> Self {
         Self {
-            provider,
             url: rpc_url,
+            gateway_url,
         }
     }
 
     pub(crate) async fn get_block_transactions(
         &self,
         block_number: BlockNumber,
-    ) -> Result<BlockWithTxs<CoreFelt>, SnTrieError> {
+    ) -> Result<(BlockWithTxs<CoreFelt>, String), SnTrieError> {
         let request = json!({
             "jsonrpc": "2.0",
             "id": "0",
@@ -36,8 +36,8 @@ impl RpcProvider {
         });
 
         let url = self.url.clone();
-
-        let response = self.provider.post(url).json(&request).send().await.unwrap();
+        let provider = reqwest::Client::new();
+        let response = provider.post(url).json(&request).send().await.unwrap();
         let response_json =
             serde_json::from_str::<serde_json::Value>(&response.text().await.unwrap()).unwrap()
                 ["result"]
@@ -45,7 +45,10 @@ impl RpcProvider {
 
         let get_proof_output: BlockWithTxs<CoreFelt> =
             serde_json::from_value(response_json).unwrap();
-        // let protocol = get_proof_output.block_header.starknet_version;
+
+        let gateway = GatewayProvider::new(self.gateway_url.to_string());
+        let gateway_block = gateway.get_block(block_number).await.unwrap();
+        // let protocol = get_proof_output.clone().block_header.starknet_version;
         // let tx_final_hashes: Vec<CoreFelt> = get_proof_output
         //     .transactions
         //     .iter()
@@ -65,21 +68,53 @@ impl RpcProvider {
         // let commit = tree.commit().unwrap();
         // println!("commit:{:?}", commit);
 
-        Ok(get_proof_output)
+        Ok((get_proof_output, gateway_block.transaction_commitment))
+    }
+}
+
+pub struct GatewayProvider {
+    base_url: String,
+}
+
+impl GatewayProvider {
+    pub fn new(base_url: String) -> Self {
+        Self { base_url }
+    }
+
+    async fn get_block(&self, block_number: u64) -> Result<StarknetBlock, SnTrieError> {
+        let url = format!(
+            "{}/feeder_gateway/get_block?blockNumber={}",
+            self.base_url, block_number
+        );
+
+        let client = reqwest::Client::new();
+        let response = client.get(&url).send().await.unwrap();
+
+        if response.status().is_success() {
+            let block_data: Value = response.json().await.unwrap();
+            let block_data: StarknetBlock = serde_json::from_value(block_data).unwrap();
+            Ok(block_data)
+        } else {
+            Err(SnTrieError::GatewayError(response.status().as_u16()))
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use std::str::FromStr;
 
-    use super::RpcProvider;
-
     const PATHFINDER_URL: &str = "https://pathfinder.sepolia.iosis.tech/";
+    const GATEWAY_URL: &str = "https://alpha-sepolia.starknet.io";
 
     #[tokio::test]
     async fn test_get_block_with_txs() {
-        let provider = RpcProvider::new(url::Url::from_str(PATHFINDER_URL).unwrap());
+        let provider = RpcProvider::new(PATHFINDER_URL, GATEWAY_URL);
+
+        let block_number = 56400;
+        let block = provider.get_block_transactions(block_number).await.unwrap();
+
         // 0.13.2 - invoke, declare,deploy_account
         // provider.get_block_with_txs(124358).await;
         // // 0.13.2 - invoke, l1_handler
@@ -99,6 +134,6 @@ mod tests {
         // provider.get_block_with_txs(34999).await;
 
         // provider.get_block_with_txs(35000).await;
-        provider.get_block_transactions(7).await;
+        // provider.get_block_transactions(56400).await;
     }
 }

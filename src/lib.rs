@@ -12,7 +12,10 @@ pub mod tx_receipt_trie;
 pub mod tx_trie;
 
 #[derive(Error, Debug)]
-pub enum SnTrieError {}
+pub enum SnTrieError {
+    #[error("Starknet error: {0}")]
+    GatewayError(u16),
+}
 
 #[derive(Error, Debug)]
 pub enum EthTrieError {

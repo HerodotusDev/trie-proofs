@@ -43,11 +43,10 @@ starknet-types-core = { git = "https://github.com/starknet-io/types-rs.git", ver
     "hash",
 ] }
 starknet-types-rpc = { version = "0.7.1", git = "https://github.com/starknet-io/types-rs" }
-pathfinder-common = { git = "https://github.com/eqlabs/pathfinder.git", rev = "4a18125cae2c8fb1284e9e8fd23acf5d5bcfde18" }
-pathfinder-merkle-tree = { git = "https://github.com/eqlabs/pathfinder.git", rev = "4a18125cae2c8fb1284e9e8fd23acf5d5bcfde18" }
-pathfinder-crypto = { git = "https://github.com/eqlabs/pathfinder", rev = "4a18125cae2c8fb1284e9e8fd23acf5d5bcfde18" }
-time = "0.3.36"
-zstd-sys = "=2.0.9" # required to fix build error
+pathfinder-common = { path = "../pathfinder-my/crates/common" }
+pathfinder-merkle-tree = { path = "../pathfinder-my/crates/merkle-tree" }
+pathfinder-crypto = { path = "../pathfinder-my/crates/crypto" }
+bitflags = "2.6.0"
 
 [[bin]]
 name = "etp-cli"
