@@ -1,7 +1,7 @@
-use pathfinder_common::{hash::PedersenHash, trie::TrieNode};
-use pathfinder_crypto::Felt as PathfinderFelt;
-use pathfinder_merkle_tree::{Membership, TransactionOrEventTree};
-use starknet_types_core::felt::Felt;
+use sn_trie::conversion::from_felt_to_bits;
+use sn_trie::{node::TrieNode, storage::memory::InMememoryStorage};
+use sn_trie::{Membership, MerkleTree};
+use starknet_types_core::{felt::Felt, hash::Pedersen};
 
 use crate::SnTrieError;
 
@@ -13,7 +13,7 @@ pub struct TxsMptHandler<'a> {
 }
 
 pub struct TxsMpt {
-    pub trie: TransactionOrEventTree<PedersenHash>,
+    pub trie: MerkleTree<Pedersen, InMememoryStorage, 64>,
     pub elements: Vec<Felt>,
     root: Felt,
     root_idx: u64,
@@ -49,23 +49,21 @@ impl<'a> TxsMptHandler<'a> {
         txs: Vec<Felt>,
         expected_commit: String,
     ) -> Result<(), SnTrieError> {
-        let mut tree = TransactionOrEventTree::default();
+        let mut tree: MerkleTree<Pedersen, InMememoryStorage, 64> = Default::default();
 
         for (idx, hash) in txs.clone().into_iter().enumerate() {
-            let felt_hash = PathfinderFelt::from_be_bytes(hash.to_bytes_be()).unwrap();
-            let idx: PathfinderFelt = PathfinderFelt::from_u64(idx as u64);
-            tree.set(idx.view_bits().to_owned(), felt_hash).unwrap();
+            let idx: Felt = Felt::from(idx as u64);
+            tree.set(from_felt_to_bits(&idx), hash).unwrap();
         }
 
         let (root, root_idx) = tree.commit().unwrap();
-        let converted_commit = Felt::from_bytes_be(&root.to_be_bytes());
 
-        assert_eq!(converted_commit.to_string(), expected_commit);
+        assert_eq!(root.to_string(), expected_commit);
 
         let result_mpt = TxsMpt {
             trie: tree,
             elements: txs,
-            root: converted_commit,
+            root,
             root_idx,
         };
 
@@ -74,14 +72,14 @@ impl<'a> TxsMptHandler<'a> {
     }
 
     pub fn get_proof(&self, tx_index: u64) -> Result<Vec<TrieNode>, SnTrieError> {
-        let idx: PathfinderFelt = PathfinderFelt::from_u64(tx_index);
+        let idx: Felt = Felt::from(tx_index);
         let root_idx = self.get_root_idx()?;
         let proof = self
             .trie
             .as_ref()
             .ok_or(SnTrieError::TrieNotFound)?
             .trie
-            .get_proof(root_idx, idx.view_bits().to_owned())
+            .get_proof(root_idx, from_felt_to_bits(&idx))
             .unwrap()
             .unwrap();
 
@@ -101,18 +99,15 @@ impl<'a> TxsMptHandler<'a> {
         tx_index: u64,
         proof: Vec<TrieNode>,
     ) -> Result<Membership, SnTrieError> {
-        let idx: PathfinderFelt = PathfinderFelt::from_u64(tx_index);
+        let idx: Felt = Felt::from(tx_index);
         // let root_idx = self.get_root_idx()?;
-        let root = self.trie.as_ref().ok_or(SnTrieError::TrieNotFound)?.root;
-        let converted_root: PathfinderFelt =
-            PathfinderFelt::from_be_bytes(root.to_bytes_be()).unwrap();
-        let result = TransactionOrEventTree::<PedersenHash>::verify_proof(
-            converted_root,
-            idx.view_bits(),
-            idx,
-            &proof,
-        )
-        .unwrap();
+        let trie = self.trie.as_ref().ok_or(SnTrieError::TrieNotFound)?;
+        let root = trie.root;
+
+        let result = trie
+            .trie
+            .verify_proof(root, &from_felt_to_bits(&idx), idx, &proof)
+            .unwrap();
         Ok(result)
     }
 }
