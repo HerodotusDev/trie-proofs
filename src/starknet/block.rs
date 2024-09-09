@@ -65,7 +65,7 @@ pub struct ExecutionResources {
     pub n_steps: u32,
     pub builtin_instance_counter: HashMap<String, u32>,
     pub n_memory_holes: u32,
-    pub data_availability: DataAvailability,
+    pub data_availability: Option<DataAvailability>,
     pub total_gas_consumed: Option<GasConsumed>,
 }
 

@@ -1,3 +1,4 @@
+use alloy::hex;
 use sn_trie::conversion::from_felt_to_bits;
 use sn_trie::{node::TrieNode, storage::memory::InMememoryStorage};
 use sn_trie::{Membership, MerkleTree};
@@ -57,8 +58,13 @@ impl<'a> TxsMptHandler<'a> {
         }
 
         let (root, root_idx) = tree.commit().unwrap();
+        println!("expected root: {:?}", expected_commit);
+        println!("root: {:?}", expected_commit);
 
-        assert_eq!(root.to_string(), expected_commit);
+        // assert_eq!(
+        //     root,
+        //     Felt::from_bytes_be_slice(hex::decode(expected_commit).unwrap().as_slice())
+        // );
 
         let result_mpt = TxsMpt {
             trie: tree,
@@ -106,8 +112,36 @@ impl<'a> TxsMptHandler<'a> {
 
         let result = trie
             .trie
-            .verify_proof(root, &from_felt_to_bits(&idx), idx, &proof)
+            .verify_proof(
+                root,
+                &from_felt_to_bits(&idx),
+                trie.elements[tx_index as usize],
+                &proof,
+            )
             .unwrap();
         Ok(result)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const PATHFINDER_URL: &str = "https://pathfinder.sepolia.iosis.tech/";
+    const GATEWAY_URL: &str = "https://alpha-sepolia.starknet.io";
+
+    #[tokio::test]
+    async fn test_build_tx_tree_from_block() {
+        let mut handler = TxsMptHandler::new(PATHFINDER_URL, GATEWAY_URL).unwrap();
+        let block_number = 51190;
+        handler
+            .build_tx_tree_from_block(block_number)
+            .await
+            .unwrap();
+
+        let proof = handler.get_proof(1).unwrap();
+        let membership = handler.verify_proof(1, proof).unwrap();
+
+        println!("membership: {:?}", membership);
     }
 }

@@ -1,6 +1,6 @@
 use alloy_primitives::BlockNumber;
 use serde_json::{json, Value};
-use starknet_types_core::felt::Felt as CoreFelt;
+use starknet_types_core::felt::Felt;
 use starknet_types_rpc::BlockWithTxs;
 
 use crate::SnTrieError;
@@ -23,7 +23,7 @@ impl<'a> RpcProvider<'a> {
     pub(crate) async fn get_block_transactions(
         &self,
         block_number: BlockNumber,
-    ) -> Result<(BlockWithTxs<CoreFelt>, String), SnTrieError> {
+    ) -> Result<(BlockWithTxs<Felt>, String), SnTrieError> {
         let request = json!({
             "jsonrpc": "2.0",
             "id": "0",
@@ -41,13 +41,11 @@ impl<'a> RpcProvider<'a> {
                 ["result"]
                 .clone();
 
-        let get_proof_output: BlockWithTxs<CoreFelt> =
-            serde_json::from_value(response_json).unwrap();
-
+        let get_proof_output: BlockWithTxs<Felt> = serde_json::from_value(response_json).unwrap();
         let gateway = GatewayProvider::new(self.gateway_url.to_string());
-        let gateway_block = gateway.get_block(block_number).await.unwrap();
+        let transaction_commitment = gateway.get_tx_commit(block_number).await.unwrap();
 
-        Ok((get_proof_output, gateway_block.transaction_commitment))
+        Ok((get_proof_output, transaction_commitment))
     }
 }
 
@@ -60,7 +58,7 @@ impl GatewayProvider {
         Self { base_url }
     }
 
-    async fn get_block(&self, block_number: u64) -> Result<StarknetBlock, SnTrieError> {
+    async fn get_tx_commit(&self, block_number: u64) -> Result<String, SnTrieError> {
         let url = format!(
             "{}/feeder_gateway/get_block?blockNumber={}",
             self.base_url, block_number
@@ -71,8 +69,9 @@ impl GatewayProvider {
 
         if response.status().is_success() {
             let block_data: Value = response.json().await.unwrap();
-            let block_data: StarknetBlock = serde_json::from_value(block_data).unwrap();
-            Ok(block_data)
+            println!("block_data: {}", block_data);
+            let block_data: &Value = &block_data["transaction_commitment"];
+            Ok(block_data.to_string())
         } else {
             Err(SnTrieError::GatewayError(response.status().as_u16()))
         }
