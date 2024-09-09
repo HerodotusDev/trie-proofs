@@ -17,6 +17,9 @@ pub enum SnTrieError {
     GatewayError(u16),
     #[error("Trie not found")]
     TrieNotFound,
+
+    #[error("Invalid transaction index")]
+    InvalidTxIndex,
 }
 
 #[derive(Error, Debug)]

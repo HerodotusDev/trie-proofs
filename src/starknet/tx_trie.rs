@@ -1,4 +1,3 @@
-use alloy::hex;
 use sn_trie::conversion::from_felt_to_bits;
 use sn_trie::{node::TrieNode, storage::memory::InMememoryStorage};
 use sn_trie::{Membership, MerkleTree};
@@ -106,18 +105,17 @@ impl<'a> TxsMptHandler<'a> {
         proof: Vec<TrieNode>,
     ) -> Result<Membership, SnTrieError> {
         let idx: Felt = Felt::from(tx_index);
-        // let root_idx = self.get_root_idx()?;
+
         let trie = self.trie.as_ref().ok_or(SnTrieError::TrieNotFound)?;
         let root = trie.root;
+        let value = trie
+            .elements
+            .get(tx_index as usize)
+            .ok_or(SnTrieError::InvalidTxIndex)?;
 
         let result = trie
             .trie
-            .verify_proof(
-                root,
-                &from_felt_to_bits(&idx),
-                trie.elements[tx_index as usize],
-                &proof,
-            )
+            .verify_proof(root, &from_felt_to_bits(&idx), *value, &proof)
             .unwrap();
         Ok(result)
     }
@@ -131,8 +129,41 @@ mod tests {
     const GATEWAY_URL: &str = "https://alpha-sepolia.starknet.io";
 
     #[tokio::test]
-    async fn test_build_tx_tree_from_block() {
+    async fn test_build_tx_tree_from_block_0() {
         let mut handler = TxsMptHandler::new(PATHFINDER_URL, GATEWAY_URL).unwrap();
+        //  # 0.12.3
+        let block_number = 7;
+        handler
+            .build_tx_tree_from_block(block_number)
+            .await
+            .unwrap();
+
+        let proof = handler.get_proof(1).unwrap();
+        let membership: Membership = handler.verify_proof(1, proof).unwrap();
+
+        assert!(membership.is_member());
+    }
+
+    #[tokio::test]
+    async fn test_build_tx_tree_from_block_1() {
+        let mut handler = TxsMptHandler::new(PATHFINDER_URL, GATEWAY_URL).unwrap();
+        // # 0.13.0
+        let block_number = 35000;
+        handler
+            .build_tx_tree_from_block(block_number)
+            .await
+            .unwrap();
+
+        let proof = handler.get_proof(1).unwrap();
+        let membership: Membership = handler.verify_proof(1, proof).unwrap();
+
+        assert!(membership.is_member());
+    }
+
+    #[tokio::test]
+    async fn test_build_tx_tree_from_block_2() {
+        let mut handler = TxsMptHandler::new(PATHFINDER_URL, GATEWAY_URL).unwrap();
+        // # 0.13.1
         let block_number = 51190;
         handler
             .build_tx_tree_from_block(block_number)
@@ -140,8 +171,40 @@ mod tests {
             .unwrap();
 
         let proof = handler.get_proof(1).unwrap();
-        let membership = handler.verify_proof(1, proof).unwrap();
+        let membership: Membership = handler.verify_proof(1, proof).unwrap();
 
-        println!("membership: {:?}", membership);
+        assert!(membership.is_member());
+    }
+
+    #[tokio::test]
+    async fn test_build_tx_tree_from_block_3() {
+        let mut handler = TxsMptHandler::new(PATHFINDER_URL, GATEWAY_URL).unwrap();
+        // # 0.13.1.1
+        let block_number = 70015;
+        handler
+            .build_tx_tree_from_block(block_number)
+            .await
+            .unwrap();
+
+        let proof = handler.get_proof(1).unwrap();
+        let membership: Membership = handler.verify_proof(1, proof).unwrap();
+
+        assert!(membership.is_member());
+    }
+
+    #[tokio::test]
+    async fn test_build_tx_tree_from_block_4() {
+        let mut handler = TxsMptHandler::new(PATHFINDER_URL, GATEWAY_URL).unwrap();
+        //  # 0.13.2
+        let block_number = 99708;
+        handler
+            .build_tx_tree_from_block(block_number)
+            .await
+            .unwrap();
+
+        let proof = handler.get_proof(1).unwrap();
+        let membership: Membership = handler.verify_proof(1, proof).unwrap();
+
+        assert!(membership.is_member());
     }
 }

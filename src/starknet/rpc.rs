@@ -5,8 +5,6 @@ use starknet_types_rpc::BlockWithTxs;
 
 use crate::SnTrieError;
 
-use super::block::StarknetBlock;
-
 pub struct RpcProvider<'a> {
     url: &'a str,
     gateway_url: &'a str,
@@ -75,42 +73,5 @@ impl GatewayProvider {
         } else {
             Err(SnTrieError::GatewayError(response.status().as_u16()))
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    const PATHFINDER_URL: &str = "https://pathfinder.sepolia.iosis.tech/";
-    const GATEWAY_URL: &str = "https://alpha-sepolia.starknet.io";
-
-    #[tokio::test]
-    async fn test_get_block_with_txs() {
-        let provider = RpcProvider::new(PATHFINDER_URL, GATEWAY_URL);
-
-        let block_number = 56400;
-        let block = provider.get_block_transactions(block_number).await.unwrap();
-
-        // 0.13.2 - invoke, declare,deploy_account
-        // provider.get_block_with_txs(124358).await;
-        // // 0.13.2 - invoke, l1_handler
-        // provider.get_block_with_txs(124015).await;
-        // // 0.13.2 - invoke
-        // provider.get_block_with_txs(99708).await;
-
-        // provider.get_block_with_txs(71224).await;
-
-        // provider.get_block_with_txs(71311).await;
-
-        // provider.get_block_with_txs(70015).await;
-
-        // provider.get_block_with_txs(50304).await;
-        // provider.get_block_with_txs(51190).await;
-
-        // provider.get_block_with_txs(34999).await;
-
-        // provider.get_block_with_txs(35000).await;
-        // provider.get_block_transactions(56400).await;
     }
 }
