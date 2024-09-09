@@ -67,7 +67,6 @@ impl GatewayProvider {
 
         if response.status().is_success() {
             let block_data: Value = response.json().await.unwrap();
-            println!("block_data: {}", block_data);
             let block_data: &Value = &block_data["transaction_commitment"];
             Ok(block_data.to_string())
         } else {

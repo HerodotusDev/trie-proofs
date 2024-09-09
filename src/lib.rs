@@ -20,6 +20,9 @@ pub enum SnTrieError {
 
     #[error("Invalid transaction index")]
     InvalidTxIndex,
+
+    #[error("Invalid commit")]
+    InvalidCommitment,
 }
 
 #[derive(Error, Debug)]

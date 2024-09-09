@@ -57,13 +57,9 @@ impl<'a> TxsMptHandler<'a> {
         }
 
         let (root, root_idx) = tree.commit().unwrap();
-        println!("expected root: {:?}", expected_commit);
-        println!("root: {:?}", expected_commit);
-
-        // assert_eq!(
-        //     root,
-        //     Felt::from_bytes_be_slice(hex::decode(expected_commit).unwrap().as_slice())
-        // );
+        // TODO: Slightly root value is different huh
+        println!("root: {:?}", root);
+        println!("expected_commit: {:?}", expected_commit);
 
         let result_mpt = TxsMpt {
             trie: tree,
