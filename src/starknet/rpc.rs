@@ -45,25 +45,25 @@ impl RpcProvider {
 
         let get_proof_output: BlockWithTxs<CoreFelt> =
             serde_json::from_value(response_json).unwrap();
-        // let protocol = get_proof_output.block_header.starknet_version;
-        // let tx_final_hashes: Vec<CoreFelt> = get_proof_output
-        //     .transactions
-        //     .iter()
-        //     .map(|t| calculate_transaction_hash(t, &protocol))
-        //     .collect();
+        let protocol = get_proof_output.block_header.clone().starknet_version;
+        let tx_final_hashes: Vec<CoreFelt> = get_proof_output
+            .transactions
+            .iter()
+            .map(|t| calculate_transaction_hash(t, &protocol))
+            .collect();
 
-        // println!("tx_final:{:?}", tx_final_hashes);
+        println!("tx_final:{:?}", tx_final_hashes);
 
-        // let mut tree = TransactionOrEventTree::default();
+        let mut tree = TransactionOrEventTree::default();
 
-        // for (idx, hash) in tx_final_hashes.into_iter().enumerate() {
-        //     let felt_hash = pathfinder_crypto::Felt::from_be_bytes(hash.to_bytes_be()).unwrap();
-        //     let idx: u64 = idx.try_into().unwrap();
-        //     tree.set(idx, felt_hash).unwrap();
-        // }
+        for (idx, hash) in tx_final_hashes.into_iter().enumerate() {
+            let felt_hash = pathfinder_crypto::Felt::from_be_bytes(hash.to_bytes_be()).unwrap();
+            let idx: u64 = idx.try_into().unwrap();
+            tree.set(idx, felt_hash).unwrap();
+        }
 
-        // let commit = tree.commit().unwrap();
-        // println!("commit:{:?}", commit);
+        let commit = tree.commit().unwrap();
+        println!("commit:{:?}", commit);
 
         Ok(get_proof_output)
     }
