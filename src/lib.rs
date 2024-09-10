@@ -23,6 +23,9 @@ pub enum SnTrieError {
 
     #[error("Invalid commit")]
     InvalidCommitment,
+
+    #[error("Verification error")]
+    VerificationError,
 }
 
 #[derive(Error, Debug)]

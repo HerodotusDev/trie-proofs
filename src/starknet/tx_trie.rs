@@ -35,7 +35,7 @@ impl<'a> TxsMptHandler<'a> {
             .provider
             .get_block_transactions(block_number)
             .await
-            .unwrap();
+            .expect("rpc fetch failed");
         let protocol = txs.block_header.starknet_version;
         let tx_final_hashes: Vec<Felt> = txs
             .transactions
@@ -76,10 +76,10 @@ impl<'a> TxsMptHandler<'a> {
         for (idx, hash) in txs.clone().into_iter().enumerate() {
             let idx: u64 = idx.try_into().unwrap();
             let key = from_u64_to_bits(idx);
-            tree.set(key, hash).unwrap();
+            tree.set(key, hash).expect("set failed");
         }
 
-        let (root, root_idx) = tree.commit().unwrap();
+        let (root, root_idx) = tree.commit().expect("commit failed");
 
         let cleaned_expected_commit = expected_commit.trim_matches('"').to_string();
         assert_eq!(cleaned_expected_commit, root.to_hex_string());
@@ -120,7 +120,7 @@ impl<'a> TxsMptHandler<'a> {
         let result = trie
             .trie
             .verify_proof(trie.root, &from_u64_to_bits(tx_index), *value, &proof)
-            .unwrap();
+            .ok_or(SnTrieError::VerificationError)?;
         Ok(result)
     }
 
