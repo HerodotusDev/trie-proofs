@@ -2819,7 +2819,7 @@ checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
 [[package]]
 name = "sn-trie"
 version = "0.1.0"
-source = "git+https://github.com/rkdud007/sn-merkle-trie.git#eafe0c5f717e6dcbd90eafcebda6efe58fe592f7"
+source = "git+https://github.com/rkdud007/sn-merkle-trie.git#789eb1ddfcbc207cfa14e6d9e3743a61b6b628b2"
 dependencies = [
  "anyhow",
  "bitvec",

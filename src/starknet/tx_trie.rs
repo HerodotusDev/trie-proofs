@@ -146,6 +146,10 @@ mod tests {
             .build_tx_tree_from_block(block_number)
             .await
             .unwrap();
+        let proof = handler.get_proof(0).unwrap();
+        let membership: Membership = handler.verify_proof(0, proof).unwrap();
+
+        assert!(membership.is_member());
 
         let proof = handler.get_proof(1).unwrap();
         let membership: Membership = handler.verify_proof(1, proof).unwrap();
@@ -163,6 +167,11 @@ mod tests {
             .await
             .unwrap();
 
+        let proof = handler.get_proof(0).unwrap();
+        let membership: Membership = handler.verify_proof(0, proof).unwrap();
+
+        assert!(membership.is_member());
+
         let proof = handler.get_proof(1).unwrap();
         let membership: Membership = handler.verify_proof(1, proof).unwrap();
 
@@ -178,6 +187,10 @@ mod tests {
             .build_tx_tree_from_block(block_number)
             .await
             .unwrap();
+        let proof = handler.get_proof(0).unwrap();
+        let membership: Membership = handler.verify_proof(0, proof).unwrap();
+
+        assert!(membership.is_member());
 
         let proof = handler.get_proof(1).unwrap();
         let membership: Membership = handler.verify_proof(1, proof).unwrap();
@@ -195,6 +208,11 @@ mod tests {
             .await
             .unwrap();
 
+        let proof = handler.get_proof(0).unwrap();
+        let membership: Membership = handler.verify_proof(0, proof).unwrap();
+
+        assert!(membership.is_member());
+
         let proof = handler.get_proof(1).unwrap();
         let membership: Membership = handler.verify_proof(1, proof).unwrap();
 
@@ -205,14 +223,29 @@ mod tests {
     async fn test_build_tx_tree_from_block_4() {
         let mut handler = TxsMptHandler::new(PATHFINDER_URL).unwrap();
         //  # 0.13.2
-        let block_number = 99709;
+        let block_number = 99708;
         handler
             .build_tx_tree_from_block(block_number)
             .await
             .unwrap();
 
+        let proof = handler.get_proof(0).unwrap();
+        let membership: Membership = handler.verify_proof(0, proof).unwrap();
+
+        assert!(membership.is_member());
+
         let proof = handler.get_proof(1).unwrap();
         let membership: Membership = handler.verify_proof(1, proof).unwrap();
+
+        assert!(membership.is_member());
+
+        let proof = handler.get_proof(2).unwrap();
+        let membership: Membership = handler.verify_proof(2, proof).unwrap();
+
+        assert!(membership.is_member());
+
+        let proof = handler.get_proof(3).unwrap();
+        let membership: Membership = handler.verify_proof(3, proof).unwrap();
 
         assert!(membership.is_member());
     }
