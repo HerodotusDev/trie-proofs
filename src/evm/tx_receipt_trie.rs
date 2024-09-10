@@ -6,10 +6,10 @@ use eth_trie::{EthTrie, MemoryDB, Trie};
 use ethereum_types::H256;
 use url::Url;
 
-use crate::{
+use crate::evm::{
+    error::EthTrieError,
     rpc::RpcProvider,
     tx_receipt::{ConsensusTxReceipt, RpcTxReceipt},
-    EthTrieError,
 };
 
 /// Represents a handler for transactions Merkle Patricia Trie (MPT) operations,

@@ -2,12 +2,12 @@
 use alloy_primitives::hex::FromHex;
 use alloy_primitives::B256;
 use clap::{Parser, Subcommand};
-use eth_trie_proofs::tx_trie::TxsMptHandler;
+use eth_trie_proofs::evm::tx_trie::TxsMptHandler;
 use serde::Serialize;
 use serde_with::serde_as;
 
-use eth_trie_proofs::tx_receipt_trie::TxReceiptsMptHandler;
-use eth_trie_proofs::EthTrieError;
+use eth_trie_proofs::evm::tx_receipt_trie::TxReceiptsMptHandler;
+use eth_trie_proofs::evm::EthTrieError;
 
 #[derive(Debug, Parser)]
 #[command(name = "eth-trie-proof")]

@@ -3,7 +3,7 @@ use serde_json::{json, Value};
 use starknet_types_core::felt::Felt;
 use starknet_types_rpc::BlockWithTxs;
 
-use crate::SnTrieError;
+use crate::starknet::SnTrieError;
 
 pub struct RpcProvider<'a> {
     url: &'a str,
