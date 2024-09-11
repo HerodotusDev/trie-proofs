@@ -4,6 +4,8 @@
 [![Crates.io](https://img.shields.io/crates/v/eth-trie-proofs?style=flat-square&logo=lootcrate)](https://crates.io/crates/eth-trie-proofs)
 [![Documentation](https://img.shields.io/docsrs/eth-trie-proofs)](https://docs.rs/eth-trie-proofs)
 
+![](.github/readme.png)
+
 A comprehensive transaction/receipt inclusion proofs handler for [Ethereum trie](https://ethereum.org/en/developers/docs/data-structures-and-encoding/patricia-merkle-trie/). Tested with various EIPs including Legacy, EIP-2930, EIP-1559, and EIP-4844. This library exposes various proof building functionalities, verification, trie construction etc.
 
 ## Installation
