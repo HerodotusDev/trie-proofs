@@ -1,4 +1,4 @@
-use crate::evm::error::EthTrieError;
+use crate::error::EthTrieError;
 use alloy::network::Ethereum;
 use alloy::primitives::B256;
 use alloy::providers::{Provider, RootProvider};

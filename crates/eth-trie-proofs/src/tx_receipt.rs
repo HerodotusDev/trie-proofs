@@ -1,4 +1,4 @@
-use crate::evm::error::EthTrieError;
+use crate::error::EthTrieError;
 use alloy::consensus::{Eip658Value, Receipt, ReceiptWithBloom, TxReceipt};
 use alloy::consensus::{ReceiptEnvelope, TxType};
 use alloy::eips::eip2718::Decodable2718;

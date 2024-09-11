@@ -6,7 +6,7 @@ use eth_trie::{EthTrie, MemoryDB, Trie};
 use ethereum_types::H256;
 use url::Url;
 
-use crate::evm::{
+use crate::{
     error::EthTrieError,
     rpc::RpcProvider,
     tx_receipt::{ConsensusTxReceipt, RpcTxReceipt},

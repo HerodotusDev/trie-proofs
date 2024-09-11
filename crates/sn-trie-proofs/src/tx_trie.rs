@@ -1,4 +1,4 @@
-use crate::starknet::SnTrieError;
+use crate::error::SnTrieError;
 use sn_trie::conversion::from_u64_to_bits;
 use sn_trie::node::TrieNode;
 use sn_trie::transaction::TransactionMerkleTree;

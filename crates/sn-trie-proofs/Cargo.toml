@@ -1,0 +1,21 @@
+[package]
+name = "sn-trie-proofs"
+version = "0.1.0"
+edition = "2021"
+description = "Starknet Transaction Trie Proofs"
+readme = "README.md"
+license-file = "LICENSE"
+repository = "https://github.com/HerodotusDev/eth-trie-proofs"
+keywords = ["mpt", "trie", "starknet"]
+categories = ["cryptography", "data-structures", "blockchain"]
+exclude = [".github"]
+
+[dependencies]
+starknet-types-core.workspace = true
+starknet-types-rpc.workspace = true
+sn-trie.workspace = true
+bitflags.workspace = true
+thiserror.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+reqwest.workspace = true
