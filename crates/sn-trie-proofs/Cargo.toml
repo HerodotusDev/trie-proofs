@@ -13,7 +13,7 @@ exclude = [".github"]
 [dependencies]
 starknet-types-core.workspace = true
 starknet-types-rpc.workspace = true
-sn-trie.workspace = true
+sn-merkle-trie.workspace = true
 bitflags.workspace = true
 thiserror.workspace = true
 serde_json.workspace = true

@@ -35,5 +35,5 @@ starknet-types-core = { version = "0.1.0", default-features = false, features = 
     "hash",
 ] }
 starknet-types-rpc = { version = "0.7.1", git = "https://github.com/starknet-io/types-rs" }
-sn-trie = { git = "https://github.com/rkdud007/sn-merkle-trie.git" }
+sn-merkle-trie = { version = "0.1.0" }
 bitflags = "2.6.0"

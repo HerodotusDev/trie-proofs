@@ -2823,9 +2823,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
 
 [[package]]
-name = "sn-trie"
+name = "sn-merkle-trie"
 version = "0.1.0"
-source = "git+https://github.com/rkdud007/sn-merkle-trie.git#789eb1ddfcbc207cfa14e6d9e3743a61b6b628b2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a46c1daa6d9bef421896da0fd2d17c80c02c93a966ca832c8f607b106d443ae0"
 dependencies = [
  "anyhow",
  "bitvec",
@@ -2839,7 +2840,7 @@ dependencies = [
  "bitflags 2.6.0",
  "reqwest 0.11.27",
  "serde_json",
- "sn-trie",
+ "sn-merkle-trie",
  "starknet-types-core 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "starknet-types-rpc",
  "thiserror",
