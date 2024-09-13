@@ -1,19 +1,11 @@
-[package]
-name = "eth-trie-proofs"
-version = "0.1.1"
-edition = "2021"
-description = "Ethereum Transaction Trie Proofs"
-readme = "README.md"
-license-file = "LICENSE"
-repository = "https://github.com/HerodotusDev/eth-trie-proofs"
-keywords = ["mpt", "trie", "ethereum"]
-categories = ["cryptography", "data-structures", "blockchain"]
-exclude = [".github"]
+[workspace]
+resolver = "2"
+members = ["cli", "crates/eth-trie-proofs", "crates/sn-trie-proofs"]
 
+[workspace.dependencies]
+eth-trie-proofs = { path = "crates/eth-trie-proofs" }
+sn-trie-proofs = { path = "crates/sn-trie-proofs" }
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
 tokio = { version = "1.36.0", features = ["rt", "rt-multi-thread", "macros"] }
 alloy-primitives = { version = "0.7.6" }
 alloy = { version = "0.1.1", features = [
@@ -43,9 +35,5 @@ starknet-types-core = { version = "0.1.0", default-features = false, features = 
     "hash",
 ] }
 starknet-types-rpc = { version = "0.7.1", git = "https://github.com/starknet-io/types-rs" }
-sn-trie = { git = "https://github.com/rkdud007/sn-merkle-trie.git" }
+sn-merkle-trie = { version = "0.1.0" }
 bitflags = "2.6.0"
-
-[[bin]]
-name = "etp-cli"
-path = "src/bin/cli.rs"

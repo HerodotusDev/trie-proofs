@@ -7,9 +7,9 @@ use ethereum_types::H256;
 use url::Url;
 
 use crate::{
+    error::EthTrieError,
     rpc::RpcProvider,
     tx::{ConsensusTx, RpcTx},
-    EthTrieError,
 };
 
 /// Represents a handler for transactions Merkle Patricia Trie (MPT) operations,

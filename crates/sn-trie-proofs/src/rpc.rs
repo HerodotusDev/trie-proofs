@@ -1,9 +1,8 @@
-use alloy_primitives::BlockNumber;
 use serde_json::{json, Value};
 use starknet_types_core::felt::Felt;
 use starknet_types_rpc::BlockWithTxs;
 
-use crate::SnTrieError;
+use crate::error::SnTrieError;
 
 pub struct RpcProvider<'a> {
     url: &'a str,
@@ -20,7 +19,7 @@ impl<'a> RpcProvider<'a> {
 
     pub(crate) async fn get_block_transactions(
         &self,
-        block_number: BlockNumber,
+        block_number: u64,
     ) -> Result<(BlockWithTxs<Felt>, String), SnTrieError> {
         let request = json!({
             "jsonrpc": "2.0",

@@ -1,8 +1,8 @@
-use crate::SnTrieError;
-use sn_trie::conversion::from_u64_to_bits;
-use sn_trie::node::TrieNode;
-use sn_trie::transaction::TransactionMerkleTree;
-use sn_trie::{Membership, MerkleTree};
+use crate::error::SnTrieError;
+use sn_merkle_trie::conversion::from_u64_to_bits;
+use sn_merkle_trie::node::TrieNode;
+use sn_merkle_trie::transaction::TransactionMerkleTree;
+use sn_merkle_trie::{Membership, MerkleTree};
 use starknet_types_core::hash::{Poseidon, StarkHash};
 use starknet_types_core::{felt::Felt, hash::Pedersen};
 

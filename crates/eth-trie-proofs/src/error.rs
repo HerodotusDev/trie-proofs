@@ -4,30 +4,6 @@ use alloy::transports::{RpcError, TransportErrorKind};
 use eth_trie::TrieError;
 use thiserror::Error;
 
-mod rpc;
-pub mod starknet;
-pub mod tx;
-pub mod tx_receipt;
-pub mod tx_receipt_trie;
-pub mod tx_trie;
-
-#[derive(Error, Debug)]
-pub enum SnTrieError {
-    #[error("Starknet error: {0}")]
-    GatewayError(u16),
-    #[error("Trie not found")]
-    TrieNotFound,
-
-    #[error("Invalid transaction index")]
-    InvalidTxIndex,
-
-    #[error("Invalid commit")]
-    InvalidCommitment,
-
-    #[error("Verification error")]
-    VerificationError,
-}
-
 #[derive(Error, Debug)]
 pub enum EthTrieError {
     #[error("Trie error: {0}")]

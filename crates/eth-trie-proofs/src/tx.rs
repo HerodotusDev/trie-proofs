@@ -1,4 +1,4 @@
-use crate::{EthTrieError, Field};
+use crate::error::{EthTrieError, Field};
 use alloy::consensus::{
     SignableTransaction, TxEip1559, TxEip2930, TxEip4844, TxEnvelope, TxLegacy, TxType,
 };
