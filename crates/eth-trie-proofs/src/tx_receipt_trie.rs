@@ -7,9 +7,9 @@ use ethereum_types::H256;
 use url::Url;
 
 use crate::{
+    error::EthTrieError,
     rpc::RpcProvider,
     tx_receipt::{ConsensusTxReceipt, RpcTxReceipt},
-    EthTrieError,
 };
 
 /// Represents a handler for transactions Merkle Patricia Trie (MPT) operations,
@@ -169,6 +169,8 @@ mod tests {
     use alloy::primitives::B256;
 
     const MAINNET_RPC_URL: &str = "https://mainnet.infura.io/v3/720000a7936b45c79d0868f70478e2e9";
+    const MAINNET_RPC_URL2: &str =
+        "https://eth-mainnet.g.alchemy.com/v2/FZEXaYqCaVKtHHr0B6uPaTavacl9uDAX";
 
     // Test cases
     // Byzantium: 4370000
@@ -224,7 +226,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_tx_receipt_1559() {
-        let url = Url::parse(MAINNET_RPC_URL).unwrap();
+        let url = Url::parse(MAINNET_RPC_URL2).unwrap();
         let target_tx_hash = B256::from(hex!(
             "2055b7e01304f87f9412cd44758cd248bc2da2dab95c97026064ffb084711735"
         ));

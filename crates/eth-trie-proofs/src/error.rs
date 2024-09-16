@@ -4,12 +4,6 @@ use alloy::transports::{RpcError, TransportErrorKind};
 use eth_trie::TrieError;
 use thiserror::Error;
 
-mod rpc;
-pub mod tx;
-pub mod tx_receipt;
-pub mod tx_receipt_trie;
-pub mod tx_trie;
-
 #[derive(Error, Debug)]
 pub enum EthTrieError {
     #[error("Trie error: {0}")]
