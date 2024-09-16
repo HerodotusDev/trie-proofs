@@ -1,47 +1,68 @@
 # trie-proofs
 
-A comprehensive proofs handler for Ethereum/Starknet trie. This repository exposes the proof building functionalities, and a CLI version.
+A comprehensive proofs handler for Ethereum and Starknet tries. This repository provides proof-building functionalities and includes a CLI tool.
 
-## Suppoorted crates
+## Supported Crates
 
-- [x] [Ethereum tx/receipt MPT Handler](./crates/eth-trie-proofs/README.md)
+- [x] [Ethereum Transaction/Receipt MPT Handler](./crates/eth-trie-proofs/README.md): Constructs transaction and receipt tries using a target block number or transaction hash, following Ethereum's Merkle Patricia Tree (MPT) specification.
 
-- [x] [Starknet tx/receipt MPT Handler](./crates/sn-trie-proofs/README.md)
+- [x] [Starknet Transaction/Receipt MPT Handler](./crates/sn-trie-proofs/README.md): Constructs transaction and receipt tries using a target block number, following Starknet's Merkle Patricia Tree (MPT) specification.
 
 ## Trie Handler
 
 - **Transaction Trie Handler**
 
-  - [x] Build a trie with a target block number
-  - [x] Build a trie with a target transaction hash
-  - [x] Retrieve proof by transaction index
-  - [x] Verify proof
+  - [x] Builds a trie with a target block number.
+  - [x] Builds a trie with a target transaction hash.
+  - [x] Retrieves proof by transaction index.
+  - [x] Verifies proof.
 
 - **Transaction Receipt Trie Handler**
-  - [x] Build a trie with a target block number
-  - [x] Build a trie with a target transaction hash
-  - [x] Retrieve proof by transaction index
-  - [x] Verify proof
+
+  - [x] Builds a trie with a target block number.
+  - [x] Builds a trie with a target transaction hash.
+  - [x] Retrieves proof by transaction index.
+  - [x] Verifies proof.
 
 ## CLI Tool
 
-The CLI tool supports generating proofs for transactions and receipts. Use the following commands based on your requirements:
+_Currently only supports Ethereum MPT._
 
-Install with: `cargo install --path ./`
+The CLI tool supports generating proofs for transactions and receipts. Use the following commands based on your requirements.
 
-Or, run without installing: `cargo run --bin etp-cli`
+### Installation
 
-**Generate a Proof via CLI**
+Install the CLI tool using Cargo:
 
-To generate a proof for a transaction, use the following command:
+```shell
+cargo install --path ./
+```
 
-`etp-cli tx <TRANSACTION_HASH> [RPC_URL]`
+Or run it without installing:
+
+```shell
+cargo run --bin etp-cli
+```
+
+### Generate a Proof via CLI
+
+To generate a proof for a transaction:
+
+```shell
+etp-cli tx <TRANSACTION_HASH> [RPC_URL]
+```
 
 To generate a receipt proof:
 
-`etp-cli receipt <TRANSACTION_HASH> [RPC_URL]`
+```shell
+etp-cli receipt <TRANSACTION_HASH> [RPC_URL]
+```
 
-As a default, `https://ethereum-rpc.publicnode.com` is used as an RPC provider. This will probably work for recent transactions, but it is advised to use a dedicated RPC.
+By default, `https://ethereum-rpc.publicnode.com` is used as the RPC provider. While this may work for recent transactions, it is advisable to use a dedicated RPC provider for better reliability.
+
+## Contributing
+
+Contributions are welcome! If you'd like to contribute to this project, please fork the repository and submit a pull request. For major changes, please open an issue first to discuss what you would like to change.
 
 ## License
 
@@ -50,3 +71,5 @@ As a default, `https://ethereum-rpc.publicnode.com` is used as an RPC provider. 
 ---
 
 Herodotus Dev Ltd - 2024
+
+---
