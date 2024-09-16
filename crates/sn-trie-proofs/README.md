@@ -11,7 +11,7 @@ A comprehensive transaction/receipt inclusion proofs handler for [Starknet trie]
 Add dependency `sn-trie-proofs` to your project:
 
 ```
-sn-trie-proofs = { version= "0.1.1" }
+sn-trie-proofs = { git = "https://github.com/HerodotusDev/trie-proofs.git" }
 ```
 
 ## Usage
@@ -33,9 +33,26 @@ async fn test_build_tx_tree_from_block_3() {
     let membership: Membership = handler.verify_proof(0, proof).unwrap();
 
     assert!(membership.is_member());
+}
+```
 
-    let proof = handler.get_proof(1).unwrap();
-    let membership: Membership = handler.verify_proof(1, proof).unwrap();
+- **Transaction Receipt Trie Handler**
+
+Currently we only supporting receipt trie after 0.13.2 version.
+
+```rust
+#[tokio::test]
+async fn test_build_tx_tree_from_block_4() {
+    let mut handler = TxReceiptsMptHandler::new(PATHFINDER_URL).unwrap();
+    //  # 0.13.2
+    let block_number = 99708;
+    handler
+        .build_tx_receipts_tree_from_block(block_number)
+        .await
+        .unwrap();
+
+    let proof = handler.get_proof(0).unwrap();
+    let membership: Membership = handler.verify_proof(0, proof).unwrap();
 
     assert!(membership.is_member());
 }
