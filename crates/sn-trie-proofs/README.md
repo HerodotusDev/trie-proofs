@@ -11,7 +11,7 @@ A comprehensive transaction/receipt inclusion proofs handler for [Starknet trie]
 Add dependency `sn-trie-proofs` to your project:
 
 ```
-sn-trie-proofs = { version= "0.1.1" }
+sn-trie-proofs = { git = "https://github.com/HerodotusDev/trie-proofs.git" }
 ```
 
 ## Usage
@@ -57,7 +57,6 @@ async fn test_build_tx_tree_from_block_4() {
     assert!(membership.is_member());
 }
 ```
-
 
 ### Credit
 

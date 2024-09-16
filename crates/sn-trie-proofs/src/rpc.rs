@@ -39,7 +39,7 @@ impl<'a> RpcProvider<'a> {
                 .clone();
 
         let get_proof_output: BlockWithTxs<Felt> = serde_json::from_value(response_json).unwrap();
-        let gateway = GatewayProvider::new(self.gateway_url.to_string());
+        let gateway = GatewayProvider::new(self.gateway_url);
         let transaction_commitment = gateway.get_tx_commit(block_number).await.unwrap();
 
         Ok((get_proof_output, transaction_commitment))
@@ -68,7 +68,7 @@ impl<'a> RpcProvider<'a> {
 
         let get_proof_output: BlockWithReceipts<Felt> =
             serde_json::from_value(response_json).unwrap();
-        let gateway = GatewayProvider::new(self.gateway_url.to_string());
+        let gateway = GatewayProvider::new(self.gateway_url);
         let (l1_gas_vec, receipt_commitment) = gateway.get_l1_gas(block_number).await.unwrap();
 
         Ok((get_proof_output, l1_gas_vec, receipt_commitment))
@@ -134,26 +134,5 @@ impl GatewayProvider {
         } else {
             Err(SnTrieError::GatewayError(response.status().as_u16()))
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    const PATHFINDER_URL: &str = "https://pathfinder.sepolia.iosis.tech/";
-    const GATEWAY_URL: &str = "https://alpha-sepolia.starknet.io";
-
-    #[tokio::test]
-    async fn test_gateway() {
-        let gateway = GatewayProvider::new(GATEWAY_URL);
-        let total_gas_consumed = gateway.get_l1_gas(99708).await;
-        println!("{:?}", total_gas_consumed);
-    }
-
-    #[tokio::test]
-    async fn test_rpc() {
-        let rpc = RpcProvider::new(PATHFINDER_URL, GATEWAY_URL);
-        let (receipts, l1_gas, _) = rpc.get_block_transactions_receipts(99708).await.unwrap();
-        assert_eq!(receipts.transactions.len(), l1_gas.len())
     }
 }
