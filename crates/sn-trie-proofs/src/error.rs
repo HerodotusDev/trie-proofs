@@ -15,4 +15,7 @@ pub enum SnTrieError {
 
     #[error("Verification error")]
     VerificationError,
+
+    #[error("Unsupported protocol")]
+    UnsupportedProtocol,
 }
