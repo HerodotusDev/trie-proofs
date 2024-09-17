@@ -81,8 +81,7 @@ async fn generate_tx_proof(tx_hash: &str, rpc_url: &str) -> Result<(), EthTrieEr
     let root = txs_mpt_handler.get_root()?;
 
     let mpt_proof = MptProof { root, proof, index };
-    println!("Generated TX Proof: ");
-    println!("{}", serde_json::to_string(&mpt_proof).unwrap());
+    print!("{}", serde_json::to_string(&mpt_proof).unwrap());
     Ok(())
 }
 
@@ -98,7 +97,6 @@ async fn generate_receipt_proof(tx_hash: &str, rpc_url: &str) -> Result<(), EthT
     let root = tx_receipts_mpt_handler.get_root()?;
 
     let mpt_proof = MptProof { root, proof, index };
-    println!("Generated Receipt Proof: ");
-    println!("{}", serde_json::to_string(&mpt_proof).unwrap());
+    print!("{}", serde_json::to_string(&mpt_proof).unwrap());
     Ok(())
 }
