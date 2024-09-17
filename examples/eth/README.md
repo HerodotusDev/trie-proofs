@@ -18,3 +18,13 @@ cd examples/eth
 
 forge test --ffi
 ```
+
+## Troubleshooting
+
+If the test fails with an RPC error, you can customize the RPC endpoint by setting the `RPC_URL`
+environment variable to the desired endpoing in your shell. For example:
+
+```shell
+export RPC_URL=https://mainnet.infura.io/v3/your_project_id
+forge test --ffi
+```

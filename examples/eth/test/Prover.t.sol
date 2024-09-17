@@ -25,13 +25,13 @@ contract ProverTest is Test {
         cmd[3] = "cli";
         cmd[4] = "tx";
         cmd[5] = vm.toString(txHash);
-        cmd[6] = "https://cloudflare-eth.com";
+        cmd[6] = vm.envOr("RPC_URL", string("https://cloudflare-eth.com"));
 
         string memory res = string(vm.ffi(cmd));
 
         // Parse the proof response from JSON:
         bytes[] memory parsedProof = vm.parseJsonBytesArray(res, ".proof");
-        uint index = vm.parseJsonUint(res, ".index");
+        uint256 index = vm.parseJsonUint(res, ".index");
         bytes32 root = vm.parseJsonBytes32(res, ".root");
 
         // Encode the proof data and the index correctly:
@@ -40,11 +40,11 @@ contract ProverTest is Test {
 
         // Verify the proof by checking the presence in the trie:
         (bool exists, bytes memory txRLP) = prover.get(key, proofData, root);
-        
+
         assertEq(exists, true);
         assertEq(keccak256(txRLP), txHash);
     }
-    
+
     // Helper to encode a list of bytes items into RLP with each item RLP-encoded as well
     function _RLPEncodeList(bytes[] memory _items) internal pure returns (bytes memory) {
         bytes[] memory encodedItems = new bytes[](_items.length);
