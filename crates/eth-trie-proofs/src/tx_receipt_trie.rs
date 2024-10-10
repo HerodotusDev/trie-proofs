@@ -169,8 +169,7 @@ mod tests {
     use alloy::primitives::B256;
 
     const MAINNET_RPC_URL: &str = "https://mainnet.infura.io/v3/720000a7936b45c79d0868f70478e2e9";
-    const MAINNET_RPC_URL2: &str =
-        "https://eth-mainnet.g.alchemy.com/v2/FZEXaYqCaVKtHHr0B6uPaTavacl9uDAX";
+    const MAINNET_RPC_URL2: &str = "https://ethereum-rpc.publicnode.com";
 
     // Test cases
     // Byzantium: 4370000
