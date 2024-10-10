@@ -33,7 +33,7 @@ impl ConsensusTx {
         }
     }
 
-    pub fn gas_limit(&self) -> u128 {
+    pub fn gas_limit(&self) -> u64 {
         match &self.0 {
             TxEnvelope::Legacy(tx) => tx.tx().gas_limit(),
             TxEnvelope::Eip2930(tx) => tx.tx().gas_limit(),
@@ -211,7 +211,7 @@ impl TryFrom<RpcTx> for ConsensusTx {
     fn try_from(tx: RpcTx) -> Result<ConsensusTx, EthTrieError> {
         let chain_id = tx.chain_id();
         let nonce: u64 = tx.0.nonce;
-        let gas_limit: u128 = tx.0.gas;
+        let gas_limit: u64 = tx.0.gas;
 
         let value = tx.0.value;
         let input = tx.0.input.clone();
@@ -293,6 +293,7 @@ impl TryFrom<RpcTx> for ConsensusTx {
                 };
                 Ok(ConsensusTx(res.into_signed(tx.signature()?).into()))
             }
+            TxType::Eip7702 => todo!(),
         }
     }
 }

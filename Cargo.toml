@@ -7,8 +7,8 @@ eth-trie-proofs = { path = "crates/eth-trie-proofs" }
 sn-trie-proofs = { path = "crates/sn-trie-proofs" }
 
 tokio = { version = "1.36.0", features = ["rt", "rt-multi-thread", "macros"] }
-alloy-primitives = { version = "0.7.6" }
-alloy = { version = "0.1.1", features = [
+alloy-primitives = { version = "0.8.6", features = ["serde"] }
+alloy = { version = "0.4.2", features = [
     "rpc",
     "rpc-types",
     "rpc-client",

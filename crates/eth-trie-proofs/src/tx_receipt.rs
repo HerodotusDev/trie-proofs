@@ -20,7 +20,7 @@ impl ConsensusTxReceipt {
         Ok(ConsensusTxReceipt(envelope))
     }
 
-    pub fn status(&self) -> &Eip658Value {
+    pub fn status(&self) -> Eip658Value {
         match &self.0 {
             ReceiptEnvelope::Legacy(receipt) => receipt.receipt.status_or_post_state(),
             ReceiptEnvelope::Eip2930(receipt) => receipt.receipt.status_or_post_state(),
@@ -112,6 +112,7 @@ impl TryFrom<RpcTxReceipt> for ConsensusTxReceipt {
                 });
                 Ok(ConsensusTxReceipt(res))
             }
+            TxType::Eip7702 => todo!(),
         }
     }
 }
