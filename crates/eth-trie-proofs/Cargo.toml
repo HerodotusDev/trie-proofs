@@ -1,10 +1,10 @@
 [package]
 name = "eth-trie-proofs"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 description = "Ethereum Transaction Trie Proofs"
 readme = "README.md"
-license-file = "LICENSE"
+license-file = "../../LICENSE"
 repository = "https://github.com/HerodotusDev/eth-trie-proofs"
 keywords = ["mpt", "trie", "ethereum"]
 categories = ["cryptography", "data-structures", "blockchain"]
