@@ -16,4 +16,5 @@ thiserror.workspace = true
 url.workspace = true
 
 [dev-dependencies]
+dotenvy.workspace = true
 tokio.workspace = true

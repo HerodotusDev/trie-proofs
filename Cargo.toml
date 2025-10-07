@@ -21,6 +21,7 @@ alloy = { version = "1.0", features = [
 ] }
 alloy-rlp = { version = "0.3" }
 clap = { version = "4.5", features = ["derive"] }
+dotenvy = "0.15"
 eth_trie = "0.6"
 ethereum-types = "0.15"
 reqwest = { version = "0.12", features = ["json"] }
