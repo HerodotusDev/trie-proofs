@@ -212,7 +212,7 @@ impl TryFrom<RpcTx> for ConsensusTx {
 
         let value = tx.0.value();
         let input = tx.0.input().clone();
-        match &tx.version()? {
+        match tx.version() {
             TxType::Legacy => {
                 let to = tx.to();
                 let gas_price = tx.0.gas_price().unwrap_or_default();
@@ -233,14 +233,14 @@ impl TryFrom<RpcTx> for ConsensusTx {
                 let gas_price = tx.0.gas_price().unwrap_or_default();
 
                 let res = TxEip2930 {
-                    chain_id: chain_id.unwrap(),
+                    chain_id: chain_id.unwrap_or_default(),
                     nonce,
                     gas_price,
                     gas_limit,
                     to,
                     value,
                     input,
-                    access_list: tx.access_list()?,
+                    access_list: tx.access_list().unwrap_or_default(),
                 };
                 Ok(ConsensusTx(res.into_signed(tx.signature()?).into()))
             }
@@ -250,13 +250,13 @@ impl TryFrom<RpcTx> for ConsensusTx {
                 let max_priority_fee_per_gas = tx.max_priority_fee_per_gas()?;
 
                 let res = TxEip1559 {
-                    chain_id: chain_id.unwrap(),
+                    chain_id: chain_id.unwrap_or_default(),
                     nonce,
                     gas_limit,
                     to,
                     value,
                     input,
-                    access_list: tx.access_list()?,
+                    access_list: tx.access_list().unwrap_or_default(),
                     max_fee_per_gas,
                     max_priority_fee_per_gas,
                 };
@@ -267,22 +267,19 @@ impl TryFrom<RpcTx> for ConsensusTx {
                     TxKind::Call(to) => to,
                     TxKind::Create => return Err(EthTrieError::InvalidTxVersion),
                 };
-                let blob_versioned_hashes =
-                    tx.0.blob_versioned_hashes()
-                        .ok_or(EthTrieError::ConversionError(Field::Input))?
-                        .to_vec();
+                let blob_versioned_hashes = tx.0.blob_versioned_hashes().unwrap_or_default().to_vec();
                 let max_fee_per_gas = tx.max_fee_per_gas();
                 let max_priority_fee_per_gas = tx.max_priority_fee_per_gas()?;
                 let max_fee_per_blob_gas = tx.max_fee_per_blob_gas()?;
 
                 let res = TxEip4844 {
-                    chain_id: chain_id.unwrap(),
+                    chain_id: chain_id.unwrap_or_default(),
                     nonce,
                     gas_limit,
                     to,
                     value,
                     input,
-                    access_list: tx.access_list()?,
+                    access_list: tx.access_list().unwrap_or_default(),
                     max_fee_per_gas,
                     max_priority_fee_per_gas,
                     max_fee_per_blob_gas,
@@ -307,15 +304,8 @@ impl RpcTx {
         }
     }
 
-    fn version(&self) -> Result<TxType, EthTrieError> {
-        match self.0.transaction_index {
-            Some(0) => Ok(TxType::Legacy),
-            Some(1) => Ok(TxType::Eip2930),
-            Some(2) => Ok(TxType::Eip1559),
-            Some(3) => Ok(TxType::Eip4844),
-            None => Ok(TxType::Legacy),
-            _ => Err(EthTrieError::InvalidTxVersion),
-        }
+    fn version(&self) -> TxType {
+        self.0.inner.tx_type()
     }
 
     fn max_fee_per_gas(&self) -> u128 {
@@ -345,11 +335,7 @@ impl RpcTx {
         Ok(sig)
     }
 
-    fn access_list(&self) -> Result<AccessList, EthTrieError> {
-        if let Some(al) = self.0.access_list() {
-            Ok(al.clone())
-        } else {
-            Err(EthTrieError::ConversionError(Field::AccessList))
-        }
+    fn access_list(&self) -> Option<AccessList> {
+        self.0.access_list().cloned()
     }
 }
