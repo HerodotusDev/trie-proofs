@@ -4,7 +4,7 @@ use starknet_types_core::{
     hash::{Pedersen, Poseidon, StarkHash},
 };
 
-use super::rpc::{RpcProvider, GATEWAY_URL};
+use super::rpc::RpcProvider;
 use crate::{error::SnTrieError, tx_receipt_hash::calculate_receipt_hash};
 
 /// Note: only implemented after 0.13.2 version
@@ -21,8 +21,8 @@ pub struct TxReceiptsMpt {
 }
 
 impl<'a> TxReceiptsMptHandler<'a> {
-    pub fn new(rpc_url: &'a str) -> Result<Self, SnTrieError> {
-        let provider = RpcProvider::new(rpc_url, GATEWAY_URL);
+    pub fn new(rpc_url: &'a str, gateway_url: &'a str) -> Result<Self, SnTrieError> {
+        let provider = RpcProvider::new(rpc_url, gateway_url);
         Ok(Self { provider, trie: None })
     }
 
@@ -121,13 +121,16 @@ impl<'a> TxReceiptsMptHandler<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::env;
 
-    const PATHFINDER_URL: &str = "https://pathfinder.sepolia.iosis.tech/";
+    use super::*;
 
     #[tokio::test]
     async fn test_build_tx_tree_from_block_4() {
-        let mut handler = TxReceiptsMptHandler::new(PATHFINDER_URL).unwrap();
+        dotenvy::dotenv().ok();
+        let rpc_url = env::var("RPC_URL_STARKNET_TESTNET").unwrap();
+        let gateway_url = env::var("RPC_URL_STARKNET_GATEWAY").unwrap();
+        let mut handler = TxReceiptsMptHandler::new(&rpc_url, &gateway_url).unwrap();
         //  # 0.13.2
         let block_number = 99708;
         handler.build_tx_receipts_tree_from_block(block_number).await.unwrap();

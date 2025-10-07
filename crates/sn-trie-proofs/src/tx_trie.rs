@@ -4,10 +4,7 @@ use starknet_types_core::{
     hash::{Pedersen, Poseidon, StarkHash},
 };
 
-use super::{
-    rpc::{RpcProvider, GATEWAY_URL},
-    tx_hash::calculate_transaction_hash,
-};
+use super::{rpc::RpcProvider, tx_hash::calculate_transaction_hash};
 use crate::error::SnTrieError;
 
 pub struct TxsMptHandler<'a> {
@@ -23,8 +20,8 @@ pub struct TxsMpt {
 }
 
 impl<'a> TxsMptHandler<'a> {
-    pub fn new(rpc_url: &'a str) -> Result<Self, SnTrieError> {
-        let provider = RpcProvider::new(rpc_url, GATEWAY_URL);
+    pub fn new(rpc_url: &'a str, gateway_url: &'a str) -> Result<Self, SnTrieError> {
+        let provider = RpcProvider::new(rpc_url, gateway_url);
         Ok(Self { provider, trie: None })
     }
 
@@ -107,13 +104,16 @@ impl<'a> TxsMptHandler<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::env;
 
-    const PATHFINDER_URL: &str = "https://pathfinder.sepolia.iosis.tech/";
+    use super::*;
 
     #[tokio::test]
     async fn test_build_tx_tree_from_block_0() {
-        let mut handler = TxsMptHandler::new(PATHFINDER_URL).unwrap();
+        dotenvy::dotenv().ok();
+        let rpc_url = env::var("RPC_URL_STARKNET_TESTNET").unwrap();
+        let gateway_url = env::var("RPC_URL_STARKNET_GATEWAY").unwrap();
+        let mut handler = TxsMptHandler::new(&rpc_url, &gateway_url).unwrap();
         //  # 0.12.3
         let block_number = 7;
         handler.build_tx_tree_from_block(block_number).await.unwrap();
@@ -130,7 +130,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_build_tx_tree_from_block_1() {
-        let mut handler = TxsMptHandler::new(PATHFINDER_URL).unwrap();
+        dotenvy::dotenv().ok();
+        let rpc_url = env::var("RPC_URL_STARKNET_TESTNET").unwrap();
+        let gateway_url = env::var("RPC_URL_STARKNET_GATEWAY").unwrap();
+        let mut handler = TxsMptHandler::new(&rpc_url, &gateway_url).unwrap();
         // # 0.13.0
         let block_number = 35000;
         handler.build_tx_tree_from_block(block_number).await.unwrap();
@@ -148,7 +151,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_build_tx_tree_from_block_2() {
-        let mut handler = TxsMptHandler::new(PATHFINDER_URL).unwrap();
+        dotenvy::dotenv().ok();
+        let rpc_url = env::var("RPC_URL_STARKNET_TESTNET").unwrap();
+        let gateway_url = env::var("RPC_URL_STARKNET_GATEWAY").unwrap();
+        let mut handler = TxsMptHandler::new(&rpc_url, &gateway_url).unwrap();
         // # 0.13.1
         let block_number = 51190;
         handler.build_tx_tree_from_block(block_number).await.unwrap();
@@ -165,7 +171,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_build_tx_tree_from_block_3() {
-        let mut handler = TxsMptHandler::new(PATHFINDER_URL).unwrap();
+        dotenvy::dotenv().ok();
+        let rpc_url = env::var("RPC_URL_STARKNET_TESTNET").unwrap();
+        let gateway_url = env::var("RPC_URL_STARKNET_GATEWAY").unwrap();
+        let mut handler = TxsMptHandler::new(&rpc_url, &gateway_url).unwrap();
         // # 0.13.1.1
         let block_number = 70015;
         handler.build_tx_tree_from_block(block_number).await.unwrap();
@@ -183,7 +192,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_build_tx_tree_from_block_4() {
-        let mut handler = TxsMptHandler::new(PATHFINDER_URL).unwrap();
+        dotenvy::dotenv().ok();
+        let rpc_url = env::var("RPC_URL_STARKNET_TESTNET").unwrap();
+        let gateway_url = env::var("RPC_URL_STARKNET_GATEWAY").unwrap();
+        let mut handler = TxsMptHandler::new(&rpc_url, &gateway_url).unwrap();
         //  # 0.13.2
         let block_number = 99708;
         handler.build_tx_tree_from_block(block_number).await.unwrap();
