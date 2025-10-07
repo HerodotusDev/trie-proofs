@@ -1,13 +1,11 @@
-use crate::error::SnTrieError;
-use sn_merkle_trie::conversion::from_u64_to_bits;
-use sn_merkle_trie::node::TrieNode;
-use sn_merkle_trie::transaction::TransactionMerkleTree;
-use sn_merkle_trie::{Membership, MerkleTree};
-use starknet_types_core::hash::{Poseidon, StarkHash};
-use starknet_types_core::{felt::Felt, hash::Pedersen};
+use sn_merkle_trie::{conversion::from_u64_to_bits, node::TrieNode, transaction::TransactionMerkleTree, Membership, MerkleTree};
+use starknet_types_core::{
+    felt::Felt,
+    hash::{Pedersen, Poseidon, StarkHash},
+};
 
-use super::rpc::GATEWAY_URL;
 use super::{rpc::RpcProvider, tx_hash::calculate_transaction_hash};
+use crate::error::SnTrieError;
 
 pub struct TxsMptHandler<'a> {
     provider: RpcProvider<'a>,
@@ -22,36 +20,20 @@ pub struct TxsMpt {
 }
 
 impl<'a> TxsMptHandler<'a> {
-    pub fn new(rpc_url: &'a str) -> Result<Self, SnTrieError> {
-        let provider = RpcProvider::new(rpc_url, GATEWAY_URL);
-        Ok(Self {
-            provider,
-            trie: None,
-        })
+    pub fn new(rpc_url: &'a str, gateway_url: &'a str) -> Result<Self, SnTrieError> {
+        let provider = RpcProvider::new(rpc_url, gateway_url);
+        Ok(Self { provider, trie: None })
     }
 
     pub async fn build_tx_tree_from_block(&mut self, block_number: u64) -> Result<(), SnTrieError> {
-        let (txs, expected_commit) = self
-            .provider
-            .get_block_transactions(block_number)
-            .await
-            .expect("rpc fetch failed");
+        let (txs, expected_commit) = self.provider.get_block_transactions(block_number).await.expect("rpc fetch failed");
         let protocol = txs.block_header.starknet_version;
-        let tx_final_hashes: Vec<Felt> = txs
-            .transactions
-            .iter()
-            .map(|t| calculate_transaction_hash(t, &protocol))
-            .collect();
+        let tx_final_hashes: Vec<Felt> = txs.transactions.iter().map(|t| calculate_transaction_hash(t, &protocol)).collect();
         self.build_trie(tx_final_hashes, &expected_commit, &protocol)?;
         Ok(())
     }
 
-    pub fn build_trie(
-        &mut self,
-        txs: Vec<Felt>,
-        expected_commit: &str,
-        protocol: &str,
-    ) -> Result<(), SnTrieError> {
+    pub fn build_trie(&mut self, txs: Vec<Felt>, expected_commit: &str, protocol: &str) -> Result<(), SnTrieError> {
         let trie = if protocol >= "0.13.2" {
             self.build_trie_generic::<Poseidon>(txs, expected_commit)?
         } else {
@@ -62,11 +44,7 @@ impl<'a> TxsMptHandler<'a> {
         Ok(())
     }
 
-    fn build_trie_generic<H: StarkHash + 'static>(
-        &self,
-        txs: Vec<Felt>,
-        expected_commit: &str,
-    ) -> Result<TxsMpt, SnTrieError> {
+    fn build_trie_generic<H: StarkHash + 'static>(&self, txs: Vec<Felt>, expected_commit: &str) -> Result<TxsMpt, SnTrieError> {
         let mut tree = if std::any::TypeId::of::<H>() == std::any::TypeId::of::<Poseidon>() {
             TransactionMerkleTree::Poseidon(MerkleTree::default())
         } else {
@@ -106,16 +84,9 @@ impl<'a> TxsMptHandler<'a> {
         Ok(proof)
     }
 
-    pub fn verify_proof(
-        &self,
-        tx_index: u64,
-        proof: Vec<TrieNode>,
-    ) -> Result<Membership, SnTrieError> {
+    pub fn verify_proof(&self, tx_index: u64, proof: Vec<TrieNode>) -> Result<Membership, SnTrieError> {
         let trie = self.trie.as_ref().ok_or(SnTrieError::TrieNotFound)?;
-        let value = trie
-            .elements
-            .get(tx_index as usize)
-            .ok_or(SnTrieError::InvalidTxIndex)?;
+        let value = trie.elements.get(tx_index as usize).ok_or(SnTrieError::InvalidTxIndex)?;
 
         let result = trie
             .trie
@@ -133,19 +104,19 @@ impl<'a> TxsMptHandler<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::env;
 
-    const PATHFINDER_URL: &str = "https://pathfinder.sepolia.iosis.tech/";
+    use super::*;
 
     #[tokio::test]
     async fn test_build_tx_tree_from_block_0() {
-        let mut handler = TxsMptHandler::new(PATHFINDER_URL).unwrap();
+        dotenvy::dotenv().ok();
+        let rpc_url = env::var("RPC_URL_STARKNET_TESTNET").unwrap();
+        let gateway_url = env::var("RPC_URL_STARKNET_GATEWAY").unwrap();
+        let mut handler = TxsMptHandler::new(&rpc_url, &gateway_url).unwrap();
         //  # 0.12.3
         let block_number = 7;
-        handler
-            .build_tx_tree_from_block(block_number)
-            .await
-            .unwrap();
+        handler.build_tx_tree_from_block(block_number).await.unwrap();
         let proof = handler.get_proof(0).unwrap();
         let membership: Membership = handler.verify_proof(0, proof).unwrap();
 
@@ -159,13 +130,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_build_tx_tree_from_block_1() {
-        let mut handler = TxsMptHandler::new(PATHFINDER_URL).unwrap();
+        dotenvy::dotenv().ok();
+        let rpc_url = env::var("RPC_URL_STARKNET_TESTNET").unwrap();
+        let gateway_url = env::var("RPC_URL_STARKNET_GATEWAY").unwrap();
+        let mut handler = TxsMptHandler::new(&rpc_url, &gateway_url).unwrap();
         // # 0.13.0
         let block_number = 35000;
-        handler
-            .build_tx_tree_from_block(block_number)
-            .await
-            .unwrap();
+        handler.build_tx_tree_from_block(block_number).await.unwrap();
 
         let proof = handler.get_proof(0).unwrap();
         let membership: Membership = handler.verify_proof(0, proof).unwrap();
@@ -180,13 +151,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_build_tx_tree_from_block_2() {
-        let mut handler = TxsMptHandler::new(PATHFINDER_URL).unwrap();
+        dotenvy::dotenv().ok();
+        let rpc_url = env::var("RPC_URL_STARKNET_TESTNET").unwrap();
+        let gateway_url = env::var("RPC_URL_STARKNET_GATEWAY").unwrap();
+        let mut handler = TxsMptHandler::new(&rpc_url, &gateway_url).unwrap();
         // # 0.13.1
         let block_number = 51190;
-        handler
-            .build_tx_tree_from_block(block_number)
-            .await
-            .unwrap();
+        handler.build_tx_tree_from_block(block_number).await.unwrap();
         let proof = handler.get_proof(0).unwrap();
         let membership: Membership = handler.verify_proof(0, proof).unwrap();
 
@@ -200,13 +171,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_build_tx_tree_from_block_3() {
-        let mut handler = TxsMptHandler::new(PATHFINDER_URL).unwrap();
+        dotenvy::dotenv().ok();
+        let rpc_url = env::var("RPC_URL_STARKNET_TESTNET").unwrap();
+        let gateway_url = env::var("RPC_URL_STARKNET_GATEWAY").unwrap();
+        let mut handler = TxsMptHandler::new(&rpc_url, &gateway_url).unwrap();
         // # 0.13.1.1
         let block_number = 70015;
-        handler
-            .build_tx_tree_from_block(block_number)
-            .await
-            .unwrap();
+        handler.build_tx_tree_from_block(block_number).await.unwrap();
 
         let proof = handler.get_proof(0).unwrap();
         let membership: Membership = handler.verify_proof(0, proof).unwrap();
@@ -221,13 +192,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_build_tx_tree_from_block_4() {
-        let mut handler = TxsMptHandler::new(PATHFINDER_URL).unwrap();
+        dotenvy::dotenv().ok();
+        let rpc_url = env::var("RPC_URL_STARKNET_TESTNET").unwrap();
+        let gateway_url = env::var("RPC_URL_STARKNET_GATEWAY").unwrap();
+        let mut handler = TxsMptHandler::new(&rpc_url, &gateway_url).unwrap();
         //  # 0.13.2
         let block_number = 99708;
-        handler
-            .build_tx_tree_from_block(block_number)
-            .await
-            .unwrap();
+        handler.build_tx_tree_from_block(block_number).await.unwrap();
 
         let proof = handler.get_proof(0).unwrap();
         let membership: Membership = handler.verify_proof(0, proof).unwrap();

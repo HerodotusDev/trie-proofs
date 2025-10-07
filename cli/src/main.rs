@@ -1,13 +1,12 @@
-// cli.rs
-use alloy_primitives::hex::FromHex;
-use alloy_primitives::B256;
+#![warn(unused_extern_crates)]
+#![warn(unused_crate_dependencies)]
+#![forbid(unsafe_code)]
+
+use alloy_primitives::{hex::FromHex, B256};
 use clap::{Parser, Subcommand};
-use eth_trie_proofs::tx_trie::TxsMptHandler;
+use eth_trie_proofs::{tx_receipt_trie::TxReceiptsMptHandler, tx_trie::TxsMptHandler, EthTrieError};
 use serde::Serialize;
 use serde_with::serde_as;
-
-use eth_trie_proofs::tx_receipt_trie::TxReceiptsMptHandler;
-use eth_trie_proofs::EthTrieError;
 
 #[derive(Debug, Parser)]
 #[command(name = "eth-trie-proof")]
@@ -51,18 +50,14 @@ async fn main() -> Result<(), EthTrieError> {
         Commands::Tx { tx_hash, rpc_url } => {
             generate_tx_proof(
                 &tx_hash,
-                rpc_url
-                    .unwrap_or("https://ethereum-rpc.publicnode.com".parse().unwrap())
-                    .as_str(),
+                rpc_url.unwrap_or("https://ethereum-rpc.publicnode.com".parse().unwrap()).as_str(),
             )
             .await?;
         }
         Commands::Receipt { tx_hash, rpc_url } => {
             generate_receipt_proof(
                 &tx_hash,
-                rpc_url
-                    .unwrap_or("https://ethereum-rpc.publicnode.com".parse().unwrap())
-                    .as_str(),
+                rpc_url.unwrap_or("https://ethereum-rpc.publicnode.com".parse().unwrap()).as_str(),
             )
             .await?;
         }
@@ -89,9 +84,7 @@ async fn generate_receipt_proof(tx_hash: &str, rpc_url: &str) -> Result<(), EthT
     let rpc_url = url::Url::parse(rpc_url).expect("Invalid URL");
     let mut tx_receipts_mpt_handler = TxReceiptsMptHandler::new(rpc_url)?;
     let tx_hash = B256::from_hex(tx_hash).unwrap();
-    tx_receipts_mpt_handler
-        .build_tx_receipt_tree_from_tx_hash(tx_hash)
-        .await?;
+    tx_receipts_mpt_handler.build_tx_receipt_tree_from_tx_hash(tx_hash).await?;
     let index = tx_receipts_mpt_handler.tx_hash_to_tx_index(tx_hash).await?;
     let proof = tx_receipts_mpt_handler.get_proof(index)?;
     let root = tx_receipts_mpt_handler.get_root()?;

@@ -6,9 +6,8 @@ members = ["cli", "crates/eth-trie-proofs", "crates/sn-trie-proofs"]
 eth-trie-proofs = { path = "crates/eth-trie-proofs" }
 sn-trie-proofs = { path = "crates/sn-trie-proofs" }
 
-tokio = { version = "1.36.0", features = ["rt", "rt-multi-thread", "macros"] }
-alloy-primitives = { version = "0.8.6", features = ["serde"] }
-alloy = { version = "0.4.2", features = [
+alloy-primitives = { version = "1.4", features = ["serde"] }
+alloy = { version = "1.0", features = [
     "rpc",
     "rpc-types",
     "rpc-client",
@@ -20,17 +19,18 @@ alloy = { version = "0.4.2", features = [
     "consensus",
     "k256",
 ] }
-url = "2.5.0"
-reqwest = { version = "0.11.26", features = ["json"] }
-alloy-rlp = { version = "0.3.5" }
-eth_trie = "0.4.0"
-ethereum-types = "0.14.1"
-clap = { version = "4.5.4", features = ["derive"] }
-serde = "1.0.197"
-serde_with = { version = "3.7.0", features = ["hex"] }
-serde_json = "1.0.114"
-thiserror = "1.0"
-starknet-types-core = "0.1.7"
-starknet-types-rpc = { version = "0.7.1" }
-sn-merkle-trie = { version = "0.1.0" }
-bitflags = "2.6.0"
+alloy-rlp = { version = "0.3" }
+clap = { version = "4.5", features = ["derive"] }
+dotenvy = "0.15"
+eth_trie = "0.6"
+ethereum-types = "0.15"
+reqwest = { version = "0.12", features = ["json"] }
+serde = "1.0"
+serde_json = "1.0"
+serde_with = { version = "3.15.0", features = ["hex"] }
+sn-merkle-trie = { git = "https://github.com/HerodotusDev/sn-merkle-trie.git", rev = "2d6aecfa4f29778ebc18c6bd0e6e5e9ee65a0a82" }
+starknet-types-core = { version = "0.3", features = ["hash"] }
+starknet-types-rpc = "0.7"
+thiserror = "2.0"
+tokio = { version = "1.0", features = ["rt", "rt-multi-thread", "macros"] }
+url = "2.5.7"

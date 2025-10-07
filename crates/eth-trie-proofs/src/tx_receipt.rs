@@ -1,11 +1,12 @@
-use crate::error::EthTrieError;
-use alloy::consensus::{Eip658Value, Receipt, ReceiptWithBloom, TxReceipt};
-use alloy::consensus::{ReceiptEnvelope, TxType};
-use alloy::eips::eip2718::Decodable2718;
-use alloy::network::eip2718::Encodable2718;
+use alloy::{
+    consensus::{Eip658Value, Receipt, ReceiptEnvelope, ReceiptWithBloom, TxReceipt, TxType},
+    eips::eip2718::Decodable2718,
+    network::eip2718::Encodable2718,
+    primitives::{Bloom, Log, LogData},
+    rpc::types::{Log as RpcLog, TransactionReceipt},
+};
 
-use alloy::primitives::{Bloom, Log, LogData};
-use alloy::rpc::types::{Log as RpcLog, TransactionReceipt};
+use crate::error::EthTrieError;
 
 #[derive(Debug, Clone)]
 pub struct ConsensusTxReceipt(pub ReceiptEnvelope);
@@ -30,7 +31,7 @@ impl ConsensusTxReceipt {
         }
     }
 
-    pub fn cumulative_gas_used(&self) -> u128 {
+    pub fn cumulative_gas_used(&self) -> u64 {
         match &self.0 {
             ReceiptEnvelope::Legacy(receipt) => receipt.receipt.cumulative_gas_used,
             ReceiptEnvelope::Eip2930(receipt) => receipt.receipt.cumulative_gas_used,
@@ -126,7 +127,7 @@ impl RpcTxReceipt {
         self.0.status()
     }
 
-    fn cumulative_gas_used(&self) -> u128 {
+    fn cumulative_gas_used(&self) -> u64 {
         self.0.inner.cumulative_gas_used()
     }
 

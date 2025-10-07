@@ -12,22 +12,23 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-      - uses: dtolnay/rust-toolchain@master
+      - name: Checkout Code
+        uses: actions/checkout@v3
         with:
-          toolchain: stable
+          submodules: true
 
-      - name: Install clippy
-        run: rustup component add clippy
+      - name: Set up Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
 
-      - name: Install rustfmt
-        run: rustup component add rustfmt
+      - name: Run clippy check
+        run: cargo clippy
 
-      - name: Run clippy for native
-        run: cargo clippy --all --all-targets -- -D warnings
-
-      - name: Run fmt
+      - name: Run fmt check
         run: cargo fmt -- --check
 
       - name: Run tests
+        env:
+            RPC_URL_ETHEREUM_MAINNET: ${{ secrets.RPC_URL_ETHEREUM_MAINNET }}
+            RPC_URL_STARKNET_GATEWAY: ${{ secrets.RPC_URL_STARKNET_GATEWAY }}
+            RPC_URL_STARKNET_TESTNET: ${{ secrets.RPC_URL_STARKNET_TESTNET }}
         run: cargo test --all --all-targets -- --nocapture

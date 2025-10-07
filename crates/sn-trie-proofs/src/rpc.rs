@@ -11,16 +11,10 @@ pub struct RpcProvider<'a> {
 
 impl<'a> RpcProvider<'a> {
     pub(crate) fn new(rpc_url: &'a str, gateway_url: &'a str) -> Self {
-        Self {
-            url: rpc_url,
-            gateway_url,
-        }
+        Self { url: rpc_url, gateway_url }
     }
 
-    pub(crate) async fn get_block_transactions(
-        &self,
-        block_number: u64,
-    ) -> Result<(BlockWithTxs<Felt>, String), SnTrieError> {
+    pub(crate) async fn get_block_transactions(&self, block_number: u64) -> Result<(BlockWithTxs<Felt>, String), SnTrieError> {
         let request = json!({
             "jsonrpc": "2.0",
             "id": "0",
@@ -33,10 +27,7 @@ impl<'a> RpcProvider<'a> {
         let url = self.url;
         let provider = reqwest::Client::new();
         let response = provider.post(url).json(&request).send().await.unwrap();
-        let response_json =
-            serde_json::from_str::<serde_json::Value>(&response.text().await.unwrap()).unwrap()
-                ["result"]
-                .clone();
+        let response_json = serde_json::from_str::<serde_json::Value>(&response.text().await.unwrap()).unwrap()["result"].clone();
 
         let get_proof_output: BlockWithTxs<Felt> = serde_json::from_value(response_json).unwrap();
         let gateway = GatewayProvider::new(self.gateway_url);
@@ -61,21 +52,15 @@ impl<'a> RpcProvider<'a> {
         let url = self.url;
         let provider = reqwest::Client::new();
         let response = provider.post(url).json(&request).send().await.unwrap();
-        let response_json =
-            serde_json::from_str::<serde_json::Value>(&response.text().await.unwrap()).unwrap()
-                ["result"]
-                .clone();
+        let response_json = serde_json::from_str::<serde_json::Value>(&response.text().await.unwrap()).unwrap()["result"].clone();
 
-        let get_proof_output: BlockWithReceipts<Felt> =
-            serde_json::from_value(response_json).unwrap();
+        let get_proof_output: BlockWithReceipts<Felt> = serde_json::from_value(response_json).unwrap();
         let gateway = GatewayProvider::new(self.gateway_url);
         let (l1_gas_vec, receipt_commitment) = gateway.get_l1_gas(block_number).await.unwrap();
 
         Ok((get_proof_output, l1_gas_vec, receipt_commitment))
     }
 }
-
-pub const GATEWAY_URL: &str = "https://alpha-sepolia.starknet.io";
 
 pub struct GatewayProvider {
     base_url: String,
@@ -89,10 +74,7 @@ impl GatewayProvider {
     }
 
     async fn get_tx_commit(&self, block_number: u64) -> Result<String, SnTrieError> {
-        let url = format!(
-            "{}/feeder_gateway/get_block?blockNumber={}",
-            self.base_url, block_number
-        );
+        let url = format!("{}/feeder_gateway/get_block?blockNumber={}", self.base_url, block_number);
 
         let client = reqwest::Client::new();
         let response = client.get(&url).send().await.unwrap();
@@ -108,10 +90,7 @@ impl GatewayProvider {
 
     /// Note: This method is only available after 0.13.2
     async fn get_l1_gas(&self, block_number: u64) -> Result<(Vec<u64>, String), SnTrieError> {
-        let url = format!(
-            "{}/feeder_gateway/get_block?blockNumber={}",
-            self.base_url, block_number
-        );
+        let url = format!("{}/feeder_gateway/get_block?blockNumber={}", self.base_url, block_number);
 
         let client = reqwest::Client::new();
         let response = client.get(&url).send().await.unwrap();
@@ -119,15 +98,12 @@ impl GatewayProvider {
         if response.status().is_success() {
             let block_data: Value = response.json().await.unwrap();
 
-            println!("{:?}", block_data);
             let receipt_commitment = block_data["receipt_commitment"].to_string();
             let transaction_receipts = block_data["transaction_receipts"].as_array().unwrap();
 
             let gas_consumed: Vec<u64> = transaction_receipts
                 .iter()
-                .filter_map(|receipt| {
-                    receipt["execution_resources"]["total_gas_consumed"]["l1_gas"].as_u64()
-                })
+                .filter_map(|receipt| receipt["execution_resources"]["total_gas_consumed"]["l1_gas"].as_u64())
                 .collect();
 
             Ok((gas_consumed, receipt_commitment))

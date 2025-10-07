@@ -1,14 +1,11 @@
-use crate::error::SnTrieError;
-use crate::tx_receipt_hash::calculate_receipt_hash;
-use sn_merkle_trie::conversion::from_u64_to_bits;
-use sn_merkle_trie::node::TrieNode;
-use sn_merkle_trie::transaction::TransactionMerkleTree;
-use sn_merkle_trie::{Membership, MerkleTree};
-use starknet_types_core::hash::{Poseidon, StarkHash};
-use starknet_types_core::{felt::Felt, hash::Pedersen};
+use sn_merkle_trie::{conversion::from_u64_to_bits, node::TrieNode, transaction::TransactionMerkleTree, Membership, MerkleTree};
+use starknet_types_core::{
+    felt::Felt,
+    hash::{Pedersen, Poseidon, StarkHash},
+};
 
 use super::rpc::RpcProvider;
-use super::rpc::GATEWAY_URL;
+use crate::{error::SnTrieError, tx_receipt_hash::calculate_receipt_hash};
 
 /// Note: only implemented after 0.13.2 version
 pub struct TxReceiptsMptHandler<'a> {
@@ -24,19 +21,13 @@ pub struct TxReceiptsMpt {
 }
 
 impl<'a> TxReceiptsMptHandler<'a> {
-    pub fn new(rpc_url: &'a str) -> Result<Self, SnTrieError> {
-        let provider = RpcProvider::new(rpc_url, GATEWAY_URL);
-        Ok(Self {
-            provider,
-            trie: None,
-        })
+    pub fn new(rpc_url: &'a str, gateway_url: &'a str) -> Result<Self, SnTrieError> {
+        let provider = RpcProvider::new(rpc_url, gateway_url);
+        Ok(Self { provider, trie: None })
     }
 
     /// Build
-    pub async fn build_tx_receipts_tree_from_block(
-        &mut self,
-        block_number: u64,
-    ) -> Result<(), SnTrieError> {
+    pub async fn build_tx_receipts_tree_from_block(&mut self, block_number: u64) -> Result<(), SnTrieError> {
         let (txs, vec_l1_gas, expected_commit) = self
             .provider
             .get_block_transactions_receipts(block_number)
@@ -59,12 +50,7 @@ impl<'a> TxReceiptsMptHandler<'a> {
         Ok(())
     }
 
-    pub fn build_trie(
-        &mut self,
-        txs: Vec<Felt>,
-        expected_commit: &str,
-        protocol: &str,
-    ) -> Result<(), SnTrieError> {
+    pub fn build_trie(&mut self, txs: Vec<Felt>, expected_commit: &str, protocol: &str) -> Result<(), SnTrieError> {
         let trie = if protocol >= "0.13.2" {
             self.build_trie_generic::<Poseidon>(txs, expected_commit)?
         } else {
@@ -75,11 +61,7 @@ impl<'a> TxReceiptsMptHandler<'a> {
         Ok(())
     }
 
-    fn build_trie_generic<H: StarkHash + 'static>(
-        &self,
-        txs: Vec<Felt>,
-        expected_commit: &str,
-    ) -> Result<TxReceiptsMpt, SnTrieError> {
+    fn build_trie_generic<H: StarkHash + 'static>(&self, txs: Vec<Felt>, expected_commit: &str) -> Result<TxReceiptsMpt, SnTrieError> {
         let mut tree = if std::any::TypeId::of::<H>() == std::any::TypeId::of::<Poseidon>() {
             TransactionMerkleTree::Poseidon(MerkleTree::default())
         } else {
@@ -119,16 +101,9 @@ impl<'a> TxReceiptsMptHandler<'a> {
         Ok(proof)
     }
 
-    pub fn verify_proof(
-        &self,
-        tx_index: u64,
-        proof: Vec<TrieNode>,
-    ) -> Result<Membership, SnTrieError> {
+    pub fn verify_proof(&self, tx_index: u64, proof: Vec<TrieNode>) -> Result<Membership, SnTrieError> {
         let trie = self.trie.as_ref().ok_or(SnTrieError::TrieNotFound)?;
-        let value = trie
-            .elements
-            .get(tx_index as usize)
-            .ok_or(SnTrieError::InvalidTxIndex)?;
+        let value = trie.elements.get(tx_index as usize).ok_or(SnTrieError::InvalidTxIndex)?;
 
         let result = trie
             .trie
@@ -146,19 +121,19 @@ impl<'a> TxReceiptsMptHandler<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::env;
 
-    const PATHFINDER_URL: &str = "https://pathfinder.sepolia.iosis.tech/";
+    use super::*;
 
     #[tokio::test]
     async fn test_build_tx_tree_from_block_4() {
-        let mut handler = TxReceiptsMptHandler::new(PATHFINDER_URL).unwrap();
+        dotenvy::dotenv().ok();
+        let rpc_url = env::var("RPC_URL_STARKNET_TESTNET").unwrap();
+        let gateway_url = env::var("RPC_URL_STARKNET_GATEWAY").unwrap();
+        let mut handler = TxReceiptsMptHandler::new(&rpc_url, &gateway_url).unwrap();
         //  # 0.13.2
         let block_number = 99708;
-        handler
-            .build_tx_receipts_tree_from_block(block_number)
-            .await
-            .unwrap();
+        handler.build_tx_receipts_tree_from_block(block_number).await.unwrap();
 
         let proof = handler.get_proof(0).unwrap();
         let membership: Membership = handler.verify_proof(0, proof).unwrap();
