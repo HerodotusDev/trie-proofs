@@ -62,7 +62,7 @@ impl<'a> RpcProvider<'a> {
     }
 }
 
-pub const GATEWAY_URL: &str = "https://alpha-sepolia.starknet.io";
+pub const GATEWAY_URL: &str = "https://feeder.alpha-sepolia.starknet.io";
 
 pub struct GatewayProvider {
     base_url: String,
