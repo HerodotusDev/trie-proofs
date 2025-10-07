@@ -1,3 +1,7 @@
+#![warn(unused_extern_crates)]
+#![warn(unused_crate_dependencies)]
+#![forbid(unsafe_code)]
+
 pub mod error;
 pub mod rpc;
 pub mod tx_hash;

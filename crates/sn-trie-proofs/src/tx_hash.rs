@@ -1,5 +1,7 @@
-use starknet_types_core::hash::{Pedersen, Poseidon};
-use starknet_types_core::{felt::Felt, hash::StarkHash};
+use starknet_types_core::{
+    felt::Felt,
+    hash::{Pedersen, Poseidon, StarkHash},
+};
 use starknet_types_rpc::{Txn, TxnWithHash};
 
 pub fn calculate_transaction_hash(tx: &TxnWithHash<Felt>, protocol_version: &str) -> Felt {

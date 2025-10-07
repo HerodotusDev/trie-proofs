@@ -11,12 +11,11 @@ categories = ["cryptography", "data-structures"]
 exclude = [".github"]
 
 [dependencies]
-tokio.workspace = true
-alloy-primitives.workspace = true
-alloy.workspace = true
-url.workspace = true
-reqwest.workspace = true
 alloy-rlp.workspace = true
+alloy.workspace = true
 eth_trie.workspace = true
-ethereum-types.workspace = true
 thiserror.workspace = true
+url.workspace = true
+
+[dev-dependencies]
+tokio.workspace = true

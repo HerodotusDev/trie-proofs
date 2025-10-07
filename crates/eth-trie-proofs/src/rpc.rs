@@ -1,14 +1,15 @@
-use crate::error::EthTrieError;
-use alloy::network::Ethereum;
-use alloy::primitives::B256;
-use alloy::providers::{Provider, RootProvider};
+use alloy::{
+    network::Ethereum,
+    primitives::B256,
+    providers::{Provider, RootProvider},
+    rpc::types::{BlockTransactions, Transaction, TransactionReceipt},
+    transports::{RpcError, TransportErrorKind},
+};
 
-use alloy::rpc::types::{BlockTransactions, Transaction, TransactionReceipt};
-use alloy::transports::http::{Client, Http};
-use alloy::transports::{RpcError, TransportErrorKind};
+use crate::error::EthTrieError;
 
 pub(crate) struct RpcProvider {
-    provider: RootProvider<Http<Client>, Ethereum>,
+    provider: RootProvider<Ethereum>,
 }
 
 impl RpcProvider {
@@ -17,16 +18,10 @@ impl RpcProvider {
         Self { provider }
     }
 
-    pub(crate) async fn get_block_transactions(
-        &self,
-        block_number: u64,
-    ) -> Result<(Vec<Transaction>, B256), EthTrieError> {
+    pub(crate) async fn get_block_transactions(&self, block_number: u64) -> Result<(Vec<Transaction>, B256), EthTrieError> {
         let block = self
             .provider
-            .get_block(
-                block_number.into(),
-                alloy::rpc::types::BlockTransactionsKind::Full,
-            )
+            .get_block(block_number.into())
             .await?
             .ok_or_else(|| EthTrieError::BlockNotFound)?;
 
@@ -38,16 +33,10 @@ impl RpcProvider {
         Ok((txs, block.header.transactions_root))
     }
 
-    pub(crate) async fn get_block_transaction_receipts(
-        &self,
-        block_number: u64,
-    ) -> Result<(Vec<TransactionReceipt>, B256), EthTrieError> {
+    pub(crate) async fn get_block_transaction_receipts(&self, block_number: u64) -> Result<(Vec<TransactionReceipt>, B256), EthTrieError> {
         let block = self
             .provider
-            .get_block(
-                block_number.into(),
-                alloy::rpc::types::BlockTransactionsKind::Full,
-            )
+            .get_block(block_number.into())
             .await?
             .ok_or_else(|| EthTrieError::BlockNotFound)?;
 
@@ -61,11 +50,7 @@ impl RpcProvider {
     }
 
     pub(crate) async fn get_tx_index_by_hash(&self, tx_hash: B256) -> Result<u64, EthTrieError> {
-        let tx = self
-            .provider
-            .get_transaction_by_hash(tx_hash)
-            .await?
-            .expect("tx not found");
+        let tx = self.provider.get_transaction_by_hash(tx_hash).await?.expect("tx not found");
 
         let index: u64 = match tx.transaction_index {
             Some(index) => index,
@@ -76,11 +61,7 @@ impl RpcProvider {
     }
 
     pub(crate) async fn get_tx_block_height(&self, tx_hash: B256) -> Result<u64, EthTrieError> {
-        let tx = self
-            .provider
-            .get_transaction_by_hash(tx_hash)
-            .await?
-            .expect("tx not found");
+        let tx = self.provider.get_transaction_by_hash(tx_hash).await?.expect("tx not found");
 
         let height: u64 = match tx.block_number {
             Some(height) => height,
