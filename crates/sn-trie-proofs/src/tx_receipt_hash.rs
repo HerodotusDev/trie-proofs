@@ -41,8 +41,3 @@ pub fn calculate_messages_sent_hash(messages: &Vec<MsgToL1<Felt>>) -> Felt {
     }
     Poseidon::hash_array(&hash_chains)
 }
-
-// Returns starknet-keccak of the revert reason ASCII string, or 0 if the transaction succeeded.
-// pub fn calculate_revert_reason_hash(execution_status: String, revert_reason: String) -> Felt {
-
-// }

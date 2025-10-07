@@ -149,8 +149,7 @@ mod tests {
 
     use super::*;
 
-    const MAINNET_RPC_URL: &str = "https://mainnet.infura.io/v3/720000a7936b45c79d0868f70478e2e9";
-    const MAINNET_RPC_URL_SUB: &str = "https://ethereum-rpc.publicnode.com";
+    const MAINNET_RPC_URL: &str = "https://ethereum-rpc.publicnode.com";
 
     // Test cases
     // Frontier: 46147
@@ -161,8 +160,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_tx_mpt_frontier() {
-        let url = Url::parse(MAINNET_RPC_URL_SUB).unwrap();
-        let target_tx_hash = B256::from(hex!("5c504ed432cb51138bcf09aa5e8a410dd4a1e204ef84bfed1be16dfba1b22060"));
+        let url = Url::parse(MAINNET_RPC_URL).unwrap();
+        let target_tx_hash = B256::from(hex!("0x5c504ed432cb51138bcf09aa5e8a410dd4a1e204ef84bfed1be16dfba1b22060"));
 
         let mut txs_mpt_handler = TxsMptHandler::new(url).unwrap();
 

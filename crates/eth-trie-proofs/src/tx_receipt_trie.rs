@@ -144,8 +144,7 @@ mod tests {
 
     use super::*;
 
-    const MAINNET_RPC_URL: &str = "https://mainnet.infura.io/v3/720000a7936b45c79d0868f70478e2e9";
-    const MAINNET_RPC_URL2: &str = "https://ethereum-rpc.publicnode.com";
+    const MAINNET_RPC_URL: &str = "https://ethereum-rpc.publicnode.com";
 
     // Test cases
     // Byzantium: 4370000
@@ -181,7 +180,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_tx_receipt_1559() {
-        let url = Url::parse(MAINNET_RPC_URL2).unwrap();
+        let url = Url::parse(MAINNET_RPC_URL).unwrap();
         let target_tx_hash = B256::from(hex!("2055b7e01304f87f9412cd44758cd248bc2da2dab95c97026064ffb084711735"));
 
         let mut tx_receipts_mpt_handler = TxReceiptsMptHandler::new(url).unwrap();
