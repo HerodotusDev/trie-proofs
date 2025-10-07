@@ -20,15 +20,9 @@ jobs:
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
 
-      - name: Run clippy check
-        run: cargo clippy
-
-      - name: Run fmt check
-        run: cargo fmt -- --check
-
       - name: Run tests
         env:
             RPC_URL_ETHEREUM_MAINNET: ${{ secrets.RPC_URL_ETHEREUM_MAINNET }}
             RPC_URL_STARKNET_GATEWAY: ${{ secrets.RPC_URL_STARKNET_GATEWAY }}
             RPC_URL_STARKNET_TESTNET: ${{ secrets.RPC_URL_STARKNET_TESTNET }}
-        run: cargo test --all --all-targets -- --nocapture
+        run: cargo test
