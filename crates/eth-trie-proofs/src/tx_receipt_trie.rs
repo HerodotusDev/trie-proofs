@@ -140,11 +140,11 @@ impl TxReceiptsMptHandler {
 
 #[cfg(test)]
 mod tests {
+    use std::env;
+
     use alloy::primitives::{hex, B256};
 
     use super::*;
-
-    const MAINNET_RPC_URL: &str = "https://ethereum-rpc.publicnode.com";
 
     // Test cases
     // Byzantium: 4370000
@@ -154,7 +154,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_tx_receipt_byzantium() {
-        let url = Url::parse(MAINNET_RPC_URL).unwrap();
+        dotenvy::dotenv().ok();
+        let url = Url::parse(&env::var("RPC_URL_ETHEREUM_MAINNET").unwrap()).unwrap();
         let target_tx_hash = B256::from(hex!("1fcb1196d8a3bff0bcf13309d2d2bb1a23ae1ac13f5674c801be0ff9254d5ab5"));
 
         let mut tx_receipts_mpt_handler = TxReceiptsMptHandler::new(url).unwrap();
@@ -167,7 +168,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_tx_receipt_2930() {
-        let url = Url::parse(MAINNET_RPC_URL).unwrap();
+        dotenvy::dotenv().ok();
+        let url = Url::parse(&env::var("RPC_URL_ETHEREUM_MAINNET").unwrap()).unwrap();
         let target_tx_hash = B256::from(hex!("aa40dd75b18f375df1ae9a7f7de217fa3bc49b94db3c4da7b3974130990aefef"));
 
         let mut tx_receipts_mpt_handler = TxReceiptsMptHandler::new(url).unwrap();
@@ -180,7 +182,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_tx_receipt_1559() {
-        let url = Url::parse(MAINNET_RPC_URL).unwrap();
+        dotenvy::dotenv().ok();
+        let url = Url::parse(&env::var("RPC_URL_ETHEREUM_MAINNET").unwrap()).unwrap();
         let target_tx_hash = B256::from(hex!("2055b7e01304f87f9412cd44758cd248bc2da2dab95c97026064ffb084711735"));
 
         let mut tx_receipts_mpt_handler = TxReceiptsMptHandler::new(url).unwrap();
@@ -193,7 +196,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_tx_receipt_4844() {
-        let url = Url::parse(MAINNET_RPC_URL).unwrap();
+        dotenvy::dotenv().ok();
+        let url = Url::parse(&env::var("RPC_URL_ETHEREUM_MAINNET").unwrap()).unwrap();
         // 4844 transaction
         let target_tx_hash = B256::from(hex!("9c1fbda4f649ac806ab0faefbe94e1a60282eb374ead6aa01bac042f52b28a8c"));
 
