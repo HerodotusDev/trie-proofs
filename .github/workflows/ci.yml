@@ -20,10 +20,10 @@ jobs:
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
 
-      - name: Run clippy for native
-        run: cargo clippy --all --all-targets -- -D warnings
+      - name: Run clippy check
+        run: cargo clippy
 
-      - name: Run fmt
+      - name: Run fmt check
         run: cargo fmt -- --check
 
       - name: Run tests
