@@ -1,11 +1,9 @@
 [package]
 name = "sn-trie-proofs"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2021"
 description = "Starknet Transaction Trie Proofs"
 readme = "README.md"
-license-file = "../../LICENSE"
-repository = "https://github.com/HerodotusDev/trie-proofs.git"
 keywords = ["mpt", "trie", "starknet"]
 categories = ["cryptography", "data-structures"]
 exclude = [".github"]

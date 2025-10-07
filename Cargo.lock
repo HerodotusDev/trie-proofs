@@ -1553,7 +1553,7 @@ dependencies = [
 
 [[package]]
 name = "eth-trie-proofs"
-version = "0.1.2"
+version = "0.2.0"
 dependencies = [
  "alloy",
  "alloy-rlp",
@@ -3590,7 +3590,7 @@ dependencies = [
 
 [[package]]
 name = "sn-trie-proofs"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "reqwest",
  "serde_json",
