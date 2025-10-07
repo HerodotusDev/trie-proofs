@@ -22,6 +22,7 @@ impl RpcProvider {
         let block = self
             .provider
             .get_block(block_number.into())
+            .full()
             .await?
             .ok_or_else(|| EthTrieError::BlockNotFound)?;
 
@@ -37,6 +38,7 @@ impl RpcProvider {
         let block = self
             .provider
             .get_block(block_number.into())
+            .full()
             .await?
             .ok_or_else(|| EthTrieError::BlockNotFound)?;
 
