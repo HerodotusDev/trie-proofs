@@ -347,4 +347,39 @@ mod tests {
             txs_mpt_handler2.get_root().unwrap()
         );
     }
+
+    #[tokio::test]
+    async fn test_tx_mpt_7702() {
+        let url = Url::parse(MAINNET_RPC_URL).unwrap();
+        // EIP-7702 transaction
+        let target_tx_hash = B256::from(hex!(
+            "a01767e7e49e16d123f557f37aae880a0ccb68aefc0c331975dff729c30a159d"
+        ));
+
+        let mut txs_mpt_handler = TxsMptHandler::new(url).unwrap();
+
+        txs_mpt_handler
+            .build_tx_tree_from_block(23535308)
+            .await
+            .unwrap();
+
+        let tx_index = txs_mpt_handler.tx_hash_to_tx_index(target_tx_hash).unwrap();
+        let proof = txs_mpt_handler.get_proof(tx_index).unwrap();
+        txs_mpt_handler
+            .verify_proof(tx_index, proof.clone())
+            .unwrap();
+
+        let url = Url::parse(MAINNET_RPC_URL).unwrap();
+        let mut txs_mpt_handler2 = TxsMptHandler::new(url).unwrap();
+
+        txs_mpt_handler2
+            .build_tx_tree_from_tx_hash(target_tx_hash)
+            .await
+            .unwrap();
+
+        assert_eq!(
+            txs_mpt_handler.get_root().unwrap(),
+            txs_mpt_handler2.get_root().unwrap()
+        );
+    }
 }

@@ -269,4 +269,28 @@ mod tests {
             .verify_proof(tx_index, proof.clone())
             .unwrap();
     }
+
+    #[tokio::test]
+    async fn test_tx_receipt_7702() {
+        let url = Url::parse(MAINNET_RPC_URL).unwrap();
+        // 4844 transaction
+        let target_tx_hash = B256::from(hex!(
+            "a01767e7e49e16d123f557f37aae880a0ccb68aefc0c331975dff729c30a159d"
+        ));
+
+        let mut tx_receipts_mpt_handler = TxReceiptsMptHandler::new(url).unwrap();
+        tx_receipts_mpt_handler
+            .build_tx_receipts_tree_from_block(23535308)
+            .await
+            .unwrap();
+
+        let tx_index = tx_receipts_mpt_handler
+            .tx_hash_to_tx_index(target_tx_hash)
+            .await
+            .unwrap();
+        let proof = tx_receipts_mpt_handler.get_proof(tx_index).unwrap();
+        tx_receipts_mpt_handler
+            .verify_proof(tx_index, proof.clone())
+            .unwrap();
+    }
 }
