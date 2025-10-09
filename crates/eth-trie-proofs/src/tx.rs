@@ -1,11 +1,12 @@
 use crate::error::{EthTrieError, Field};
 use alloy::consensus::{
-    SignableTransaction, TxEip1559, TxEip2930, TxEip4844, TxEnvelope, TxLegacy, TxType,
+    SignableTransaction, TxEip1559, TxEip2930, TxEip4844, TxEip7702, TxEnvelope, TxLegacy, TxType,
 };
 use alloy::consensus::{Transaction as ConsensusTransaction, TxEip4844Variant};
 use alloy::eips::eip2718::Decodable2718;
 use alloy::eips::eip2930::AccessList;
 use alloy::eips::eip2930::AccessListItem;
+use alloy::eips::eip7702::SignedAuthorization;
 use alloy::network::eip2718::Encodable2718;
 use alloy::primitives::{ChainId, FixedBytes, Parity, Signature, TxKind, U256};
 use alloy::rpc::types::Transaction;
@@ -29,6 +30,7 @@ impl ConsensusTx {
             TxEnvelope::Eip2930(tx) => tx.tx().nonce(),
             TxEnvelope::Eip1559(tx) => tx.tx().nonce(),
             TxEnvelope::Eip4844(tx) => tx.tx().nonce(),
+            TxEnvelope::Eip7702(tx) => tx.tx().nonce(),
             _ => todo!(),
         }
     }
@@ -39,6 +41,7 @@ impl ConsensusTx {
             TxEnvelope::Eip2930(tx) => tx.tx().gas_limit(),
             TxEnvelope::Eip1559(tx) => tx.tx().gas_limit(),
             TxEnvelope::Eip4844(tx) => tx.tx().gas_limit(),
+            TxEnvelope::Eip7702(tx) => tx.tx().gas_limit(),
             _ => todo!(),
         }
     }
@@ -49,6 +52,7 @@ impl ConsensusTx {
             TxEnvelope::Eip2930(tx) => tx.tx().gas_price(),
             TxEnvelope::Eip1559(tx) => tx.tx().gas_price(),
             TxEnvelope::Eip4844(tx) => tx.tx().gas_price(),
+            TxEnvelope::Eip7702(tx) => tx.tx().gas_price(),
             _ => todo!(),
         }
     }
@@ -59,6 +63,7 @@ impl ConsensusTx {
             TxEnvelope::Eip2930(tx) => tx.tx().to(),
             TxEnvelope::Eip1559(tx) => tx.tx().to(),
             TxEnvelope::Eip4844(tx) => tx.tx().to(),
+            TxEnvelope::Eip7702(tx) => tx.tx().to(),
             _ => todo!(),
         }
     }
@@ -69,6 +74,7 @@ impl ConsensusTx {
             TxEnvelope::Eip2930(tx) => tx.tx().value(),
             TxEnvelope::Eip1559(tx) => tx.tx().value(),
             TxEnvelope::Eip4844(tx) => tx.tx().value(),
+            TxEnvelope::Eip7702(tx) => tx.tx().value(),
             _ => todo!(),
         }
     }
@@ -79,6 +85,7 @@ impl ConsensusTx {
             TxEnvelope::Eip2930(tx) => tx.tx().input(),
             TxEnvelope::Eip1559(tx) => tx.tx().input(),
             TxEnvelope::Eip4844(tx) => tx.tx().input(),
+            TxEnvelope::Eip7702(tx) => tx.tx().input(),
             _ => todo!(),
         }
     }
@@ -89,6 +96,7 @@ impl ConsensusTx {
             TxEnvelope::Eip2930(tx) => tx.signature().v().to_u64(),
             TxEnvelope::Eip1559(tx) => tx.signature().v().to_u64(),
             TxEnvelope::Eip4844(tx) => tx.signature().v().to_u64(),
+            TxEnvelope::Eip7702(tx) => tx.signature().v().to_u64(),
             _ => todo!(),
         }
     }
@@ -99,6 +107,7 @@ impl ConsensusTx {
             TxEnvelope::Eip2930(tx) => tx.signature().r(),
             TxEnvelope::Eip1559(tx) => tx.signature().r(),
             TxEnvelope::Eip4844(tx) => tx.signature().r(),
+            TxEnvelope::Eip7702(tx) => tx.signature().r(),
             _ => todo!(),
         }
     }
@@ -109,6 +118,7 @@ impl ConsensusTx {
             TxEnvelope::Eip2930(tx) => tx.signature().s(),
             TxEnvelope::Eip1559(tx) => tx.signature().s(),
             TxEnvelope::Eip4844(tx) => tx.signature().s(),
+            TxEnvelope::Eip7702(tx) => tx.signature().s(),
             _ => todo!(),
         }
     }
@@ -119,6 +129,7 @@ impl ConsensusTx {
             TxEnvelope::Eip2930(tx) => tx.recover_signer(),
             TxEnvelope::Eip1559(tx) => tx.recover_signer(),
             TxEnvelope::Eip4844(tx) => tx.recover_signer(),
+            TxEnvelope::Eip7702(tx) => tx.recover_signer(),
             _ => todo!(),
         }
     }
@@ -129,6 +140,7 @@ impl ConsensusTx {
             TxEnvelope::Eip2930(tx) => tx.tx().chain_id(),
             TxEnvelope::Eip1559(tx) => tx.tx().chain_id(),
             TxEnvelope::Eip4844(tx) => tx.tx().chain_id(),
+            TxEnvelope::Eip7702(tx) => tx.tx().chain_id(),
             _ => todo!(),
         }
     }
@@ -142,6 +154,7 @@ impl ConsensusTx {
                 TxEip4844Variant::TxEip4844(tx) => Some(tx.access_list.clone()),
                 TxEip4844Variant::TxEip4844WithSidecar(tx) => Some(tx.tx().access_list.clone()),
             },
+            TxEnvelope::Eip7702(tx) => Some(tx.tx().access_list.clone()),
             _ => todo!(),
         }
     }
@@ -155,6 +168,7 @@ impl ConsensusTx {
                 TxEip4844Variant::TxEip4844(tx) => Some(tx.max_fee_per_gas),
                 TxEip4844Variant::TxEip4844WithSidecar(tx) => Some(tx.tx().max_fee_per_gas),
             },
+            TxEnvelope::Eip7702(tx) => Some(tx.tx().max_fee_per_gas),
             _ => todo!(),
         }
     }
@@ -170,6 +184,7 @@ impl ConsensusTx {
                     Some(tx.tx().max_priority_fee_per_gas)
                 }
             },
+            TxEnvelope::Eip7702(tx) => Some(tx.tx().max_priority_fee_per_gas),
             _ => todo!(),
         }
     }
@@ -185,6 +200,7 @@ impl ConsensusTx {
                     Some(tx.tx().blob_versioned_hashes.clone())
                 }
             },
+            TxEnvelope::Eip7702(_) => None,
             _ => todo!(),
         }
     }
@@ -198,6 +214,18 @@ impl ConsensusTx {
                 TxEip4844Variant::TxEip4844(tx) => Some(tx.max_fee_per_blob_gas),
                 TxEip4844Variant::TxEip4844WithSidecar(tx) => Some(tx.tx().max_fee_per_blob_gas),
             },
+            TxEnvelope::Eip7702(_) => None,
+            _ => todo!(),
+        }
+    }
+
+    pub fn authorization_list(&self) -> Option<&[SignedAuthorization]> {
+        match &self.0 {
+            TxEnvelope::Legacy(_) => None,
+            TxEnvelope::Eip2930(_) => None,
+            TxEnvelope::Eip1559(_) => None,
+            TxEnvelope::Eip4844(_) => None,
+            TxEnvelope::Eip7702(tx) => tx.tx().authorization_list(),
             _ => todo!(),
         }
     }
@@ -293,7 +321,29 @@ impl TryFrom<RpcTx> for ConsensusTx {
                 };
                 Ok(ConsensusTx(res.into_signed(tx.signature()?).into()))
             }
-            TxType::Eip7702 => todo!(),
+            TxType::Eip7702 => {
+                let to = match tx.to() {
+                    TxKind::Call(to) => to,
+                    TxKind::Create => return Err(EthTrieError::InvalidTxVersion),
+                };
+                let max_fee_per_gas = tx.max_fee_per_gas()?;
+                let max_priority_fee_per_gas = tx.max_priority_fee_per_gas()?;
+                let authorization_list = tx.authorization_list()?;
+
+                let res = TxEip7702 {
+                    chain_id: chain_id.unwrap(),
+                    nonce,
+                    gas_limit,
+                    to,
+                    value,
+                    input,
+                    access_list: tx.access_list()?,
+                    max_fee_per_gas,
+                    max_priority_fee_per_gas,
+                    authorization_list: authorization_list.clone(),
+                };
+                Ok(ConsensusTx(res.into_signed(tx.signature()?).into()))
+            }
         }
     }
 }
@@ -316,6 +366,7 @@ impl RpcTx {
             Some(1) => Ok(TxType::Eip2930),
             Some(2) => Ok(TxType::Eip1559),
             Some(3) => Ok(TxType::Eip4844),
+            Some(4) => Ok(TxType::Eip7702),
             None => Ok(TxType::Legacy),
             _ => Err(EthTrieError::InvalidTxVersion),
         }
@@ -371,6 +422,14 @@ impl RpcTx {
             Ok(AccessList(target_list_items))
         } else {
             Err(EthTrieError::ConversionError(Field::AccessList))
+        }
+    }
+
+    fn authorization_list(&self) -> Result<Vec<SignedAuthorization>, EthTrieError> {
+        if let Some(auth_list) = &self.0.authorization_list {
+            Ok(auth_list.clone())
+        } else {
+            Ok(Vec::new())
         }
     }
 }

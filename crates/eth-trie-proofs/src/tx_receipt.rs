@@ -26,6 +26,7 @@ impl ConsensusTxReceipt {
             ReceiptEnvelope::Eip2930(receipt) => receipt.receipt.status_or_post_state(),
             ReceiptEnvelope::Eip1559(receipt) => receipt.receipt.status_or_post_state(),
             ReceiptEnvelope::Eip4844(receipt) => receipt.receipt.status_or_post_state(),
+            ReceiptEnvelope::Eip7702(receipt) => receipt.receipt.status_or_post_state(),
             _ => todo!(),
         }
     }
@@ -36,6 +37,7 @@ impl ConsensusTxReceipt {
             ReceiptEnvelope::Eip2930(receipt) => receipt.receipt.cumulative_gas_used,
             ReceiptEnvelope::Eip1559(receipt) => receipt.receipt.cumulative_gas_used,
             ReceiptEnvelope::Eip4844(receipt) => receipt.receipt.cumulative_gas_used,
+            ReceiptEnvelope::Eip7702(receipt) => receipt.receipt.cumulative_gas_used,
             _ => todo!(),
         }
     }
@@ -46,6 +48,7 @@ impl ConsensusTxReceipt {
             ReceiptEnvelope::Eip2930(receipt) => receipt.receipt.logs.clone(),
             ReceiptEnvelope::Eip1559(receipt) => receipt.receipt.logs.clone(),
             ReceiptEnvelope::Eip4844(receipt) => receipt.receipt.logs.clone(),
+            ReceiptEnvelope::Eip7702(receipt) => receipt.receipt.logs.clone(),
             _ => todo!(),
         }
     }
@@ -56,6 +59,7 @@ impl ConsensusTxReceipt {
             ReceiptEnvelope::Eip2930(receipt) => receipt.bloom(),
             ReceiptEnvelope::Eip1559(receipt) => receipt.bloom(),
             ReceiptEnvelope::Eip4844(receipt) => receipt.bloom(),
+            ReceiptEnvelope::Eip7702(receipt) => receipt.bloom(),
             _ => todo!(),
         }
     }
@@ -112,7 +116,17 @@ impl TryFrom<RpcTxReceipt> for ConsensusTxReceipt {
                 });
                 Ok(ConsensusTxReceipt(res))
             }
-            TxType::Eip7702 => todo!(),
+            TxType::Eip7702 => {
+                let res = ReceiptEnvelope::Eip7702(ReceiptWithBloom {
+                    receipt: Receipt {
+                        status: Eip658Value::from(tx.status()),
+                        cumulative_gas_used: tx.cumulative_gas_used(),
+                        logs: tx.logs(),
+                    },
+                    logs_bloom: tx.bloom(),
+                });
+                Ok(ConsensusTxReceipt(res))
+            }
         }
     }
 }
