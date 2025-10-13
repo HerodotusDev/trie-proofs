@@ -4,7 +4,6 @@ use alloy::primitives::B256;
 use alloy::providers::{Provider, RootProvider};
 
 use alloy::rpc::types::{BlockTransactions, Transaction, TransactionReceipt};
-use alloy::transports::http::{Client, Http};
 use alloy::transports::{RpcError, TransportErrorKind};
 
 pub(crate) struct RpcProvider {
@@ -13,7 +12,6 @@ pub(crate) struct RpcProvider {
 
 impl RpcProvider {
     pub(crate) fn new(rpc_url: url::Url) -> Self {
-        
         let provider = RootProvider::new_http(rpc_url);
         Self { provider }
     }

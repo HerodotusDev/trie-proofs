@@ -170,12 +170,12 @@ mod tests {
 
     use dotenv::dotenv;
     use std::env;
-    
+
     fn mainnet_rpc_url() -> String {
         dotenv().ok();
         env::var("MAINNET_RPC_URL").expect("MAINNET_RPC_URL not set")
     }
-    
+
     // Test cases
     // Byzantium: 4370000
     // EIP-2930(Berlin): 12244000

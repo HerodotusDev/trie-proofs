@@ -169,7 +169,7 @@ mod tests {
 
     use dotenv::dotenv;
     use std::env;
-    
+
     fn mainnet_rpc_url() -> String {
         dotenv().ok();
         env::var("MAINNET_RPC_URL").expect("MAINNET_RPC_URL not set")
@@ -338,7 +338,7 @@ mod tests {
             .verify_proof(tx_index, proof.clone())
             .unwrap();
 
-            let url = Url::parse(&mainnet_rpc_url()).unwrap();
+        let url = Url::parse(&mainnet_rpc_url()).unwrap();
         let mut txs_mpt_handler2 = TxsMptHandler::new(url).unwrap();
 
         txs_mpt_handler2

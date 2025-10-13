@@ -1,13 +1,10 @@
-use crate::error::{EthTrieError, Field};
-use alloy::consensus::{
-    SignableTransaction, TxEip1559, TxEip2930, TxEip4844, TxEnvelope, TxLegacy, TxType,
-};
+use crate::error::EthTrieError;
+use alloy::consensus::TxEnvelope;
 use alloy::consensus::{Transaction as ConsensusTransaction, TxEip4844Variant};
 use alloy::eips::eip2718::Decodable2718;
 use alloy::eips::eip2930::AccessList;
-use alloy::eips::eip2930::AccessListItem;
 use alloy::network::eip2718::Encodable2718;
-use alloy::primitives::{ChainId, FixedBytes, Signature, TxKind, U256};
+use alloy::primitives::{ChainId, FixedBytes, TxKind, U256};
 use alloy::rpc::types::Transaction;
 
 #[derive(Debug, Clone)]
@@ -209,7 +206,7 @@ pub(crate) struct RpcTx(pub Transaction);
 impl TryFrom<RpcTx> for ConsensusTx {
     type Error = EthTrieError;
     fn try_from(tx: RpcTx) -> Result<ConsensusTx, EthTrieError> {
-        let envelope: TxEnvelope = tx.0.into_inner().into();
+        let envelope: TxEnvelope = tx.0.into_inner();
         Ok(ConsensusTx(envelope))
     }
 }
