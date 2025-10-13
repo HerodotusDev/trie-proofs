@@ -4,11 +4,10 @@ use alloy::primitives::B256;
 use alloy::providers::{Provider, RootProvider};
 
 use alloy::rpc::types::{BlockTransactions, Transaction, TransactionReceipt};
-use alloy::transports::http::{Client, Http};
 use alloy::transports::{RpcError, TransportErrorKind};
 
 pub(crate) struct RpcProvider {
-    provider: RootProvider<Http<Client>, Ethereum>,
+    provider: RootProvider<Ethereum>,
 }
 
 impl RpcProvider {
@@ -23,10 +22,8 @@ impl RpcProvider {
     ) -> Result<(Vec<Transaction>, B256), EthTrieError> {
         let block = self
             .provider
-            .get_block(
-                block_number.into(),
-                alloy::rpc::types::BlockTransactionsKind::Full,
-            )
+            .get_block(block_number.into())
+            .full()
             .await?
             .ok_or_else(|| EthTrieError::BlockNotFound)?;
 
@@ -44,10 +41,8 @@ impl RpcProvider {
     ) -> Result<(Vec<TransactionReceipt>, B256), EthTrieError> {
         let block = self
             .provider
-            .get_block(
-                block_number.into(),
-                alloy::rpc::types::BlockTransactionsKind::Full,
-            )
+            .get_block(block_number.into())
+            .full()
             .await?
             .ok_or_else(|| EthTrieError::BlockNotFound)?;
 

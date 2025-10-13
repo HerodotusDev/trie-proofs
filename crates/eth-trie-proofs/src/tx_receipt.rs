@@ -27,18 +27,16 @@ impl ConsensusTxReceipt {
             ReceiptEnvelope::Eip1559(receipt) => receipt.receipt.status_or_post_state(),
             ReceiptEnvelope::Eip4844(receipt) => receipt.receipt.status_or_post_state(),
             ReceiptEnvelope::Eip7702(receipt) => receipt.receipt.status_or_post_state(),
-            _ => todo!(),
         }
     }
 
-    pub fn cumulative_gas_used(&self) -> u128 {
+    pub fn cumulative_gas_used(&self) -> u64 {
         match &self.0 {
             ReceiptEnvelope::Legacy(receipt) => receipt.receipt.cumulative_gas_used,
             ReceiptEnvelope::Eip2930(receipt) => receipt.receipt.cumulative_gas_used,
             ReceiptEnvelope::Eip1559(receipt) => receipt.receipt.cumulative_gas_used,
             ReceiptEnvelope::Eip4844(receipt) => receipt.receipt.cumulative_gas_used,
             ReceiptEnvelope::Eip7702(receipt) => receipt.receipt.cumulative_gas_used,
-            _ => todo!(),
         }
     }
 
@@ -49,7 +47,6 @@ impl ConsensusTxReceipt {
             ReceiptEnvelope::Eip1559(receipt) => receipt.receipt.logs.clone(),
             ReceiptEnvelope::Eip4844(receipt) => receipt.receipt.logs.clone(),
             ReceiptEnvelope::Eip7702(receipt) => receipt.receipt.logs.clone(),
-            _ => todo!(),
         }
     }
 
@@ -60,7 +57,6 @@ impl ConsensusTxReceipt {
             ReceiptEnvelope::Eip1559(receipt) => receipt.bloom(),
             ReceiptEnvelope::Eip4844(receipt) => receipt.bloom(),
             ReceiptEnvelope::Eip7702(receipt) => receipt.bloom(),
-            _ => todo!(),
         }
     }
 }
@@ -140,7 +136,7 @@ impl RpcTxReceipt {
         self.0.status()
     }
 
-    fn cumulative_gas_used(&self) -> u128 {
+    fn cumulative_gas_used(&self) -> u64 {
         self.0.inner.cumulative_gas_used()
     }
 

@@ -20,3 +20,4 @@ alloy-rlp.workspace = true
 eth_trie.workspace = true
 ethereum-types.workspace = true
 thiserror.workspace = true
+dotenv.workspace = true
