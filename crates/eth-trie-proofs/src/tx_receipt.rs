@@ -30,7 +30,7 @@ impl ConsensusTxReceipt {
         }
     }
 
-    pub fn cumulative_gas_used(&self) -> u128 {
+    pub fn cumulative_gas_used(&self) -> u64 {
         match &self.0 {
             ReceiptEnvelope::Legacy(receipt) => receipt.receipt.cumulative_gas_used,
             ReceiptEnvelope::Eip2930(receipt) => receipt.receipt.cumulative_gas_used,
@@ -126,7 +126,7 @@ impl RpcTxReceipt {
         self.0.status()
     }
 
-    fn cumulative_gas_used(&self) -> u128 {
+    fn cumulative_gas_used(&self) -> u64 {
         self.0.inner.cumulative_gas_used()
     }
 

@@ -167,9 +167,13 @@ mod tests {
     use alloy::primitives::hex;
     use alloy::primitives::B256;
 
-    const MAINNET_RPC_URL: &str = "https://mainnet.infura.io/v3/720000a7936b45c79d0868f70478e2e9";
-    const MAINNET_RPC_URL_SUB: &str = "https://ethereum-rpc.publicnode.com";
-
+    use dotenv::dotenv;
+    use std::env;
+    
+    fn mainnet_rpc_url() -> String {
+        dotenv().ok();
+        env::var("MAINNET_RPC_URL").expect("MAINNET_RPC_URL not set")
+    }
     // Test cases
     // Frontier: 46147
     // Byzantium: 4370000
@@ -179,7 +183,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_tx_mpt_frontier() {
-        let url = Url::parse(MAINNET_RPC_URL_SUB).unwrap();
+        let url = Url::parse(&mainnet_rpc_url()).unwrap();
         let target_tx_hash = B256::from(hex!(
             "5c504ed432cb51138bcf09aa5e8a410dd4a1e204ef84bfed1be16dfba1b22060"
         ));
@@ -197,7 +201,7 @@ mod tests {
             .verify_proof(tx_index, proof.clone())
             .unwrap();
 
-        let url = Url::parse(MAINNET_RPC_URL).unwrap();
+        let url = Url::parse(&mainnet_rpc_url()).unwrap();
         let mut txs_mpt_handler2 = TxsMptHandler::new(url).unwrap();
 
         txs_mpt_handler2
@@ -213,7 +217,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_tx_mpt_byzantium() {
-        let url = Url::parse(MAINNET_RPC_URL).unwrap();
+        let url = Url::parse(&mainnet_rpc_url()).unwrap();
         let target_tx_hash = B256::from(hex!(
             "1fcb1196d8a3bff0bcf13309d2d2bb1a23ae1ac13f5674c801be0ff9254d5ab5"
         ));
@@ -231,7 +235,7 @@ mod tests {
             .verify_proof(tx_index, proof.clone())
             .unwrap();
 
-        let url = Url::parse(MAINNET_RPC_URL).unwrap();
+        let url = Url::parse(&mainnet_rpc_url()).unwrap();
         let mut txs_mpt_handler2 = TxsMptHandler::new(url).unwrap();
 
         txs_mpt_handler2
@@ -247,7 +251,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_tx_mpt_2930() {
-        let url = Url::parse(MAINNET_RPC_URL).unwrap();
+        let url = Url::parse(&mainnet_rpc_url()).unwrap();
         let target_tx_hash = B256::from(hex!(
             "aa40dd75b18f375df1ae9a7f7de217fa3bc49b94db3c4da7b3974130990aefef"
         ));
@@ -265,7 +269,7 @@ mod tests {
             .verify_proof(tx_index, proof.clone())
             .unwrap();
 
-        let url = Url::parse(MAINNET_RPC_URL).unwrap();
+        let url = Url::parse(&mainnet_rpc_url()).unwrap();
         let mut txs_mpt_handler2 = TxsMptHandler::new(url).unwrap();
 
         txs_mpt_handler2
@@ -281,7 +285,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_tx_mpt_1559() {
-        let url = Url::parse(MAINNET_RPC_URL).unwrap();
+        let url = Url::parse(&mainnet_rpc_url()).unwrap();
         let target_tx_hash = B256::from(hex!(
             "2055b7e01304f87f9412cd44758cd248bc2da2dab95c97026064ffb084711735"
         ));
@@ -299,7 +303,7 @@ mod tests {
             .verify_proof(tx_index, proof.clone())
             .unwrap();
 
-        let url = Url::parse(MAINNET_RPC_URL).unwrap();
+        let url = Url::parse(&mainnet_rpc_url()).unwrap();
         let mut txs_mpt_handler2 = TxsMptHandler::new(url).unwrap();
 
         txs_mpt_handler2
@@ -315,7 +319,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_tx_mpt_4844() {
-        let url = Url::parse(MAINNET_RPC_URL).unwrap();
+        let url = Url::parse(&mainnet_rpc_url()).unwrap();
         // 4844 transaction
         let target_tx_hash = B256::from(hex!(
             "9c1fbda4f649ac806ab0faefbe94e1a60282eb374ead6aa01bac042f52b28a8c"
@@ -334,7 +338,7 @@ mod tests {
             .verify_proof(tx_index, proof.clone())
             .unwrap();
 
-        let url = Url::parse(MAINNET_RPC_URL).unwrap();
+            let url = Url::parse(&mainnet_rpc_url()).unwrap();
         let mut txs_mpt_handler2 = TxsMptHandler::new(url).unwrap();
 
         txs_mpt_handler2

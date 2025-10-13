@@ -7,7 +7,7 @@ use alloy::eips::eip2718::Decodable2718;
 use alloy::eips::eip2930::AccessList;
 use alloy::eips::eip2930::AccessListItem;
 use alloy::network::eip2718::Encodable2718;
-use alloy::primitives::{ChainId, FixedBytes, Parity, Signature, TxKind, U256};
+use alloy::primitives::{ChainId, FixedBytes, Signature, TxKind, U256};
 use alloy::rpc::types::Transaction;
 
 #[derive(Debug, Clone)]
@@ -55,10 +55,10 @@ impl ConsensusTx {
 
     pub fn to(&self) -> TxKind {
         match &self.0 {
-            TxEnvelope::Legacy(tx) => tx.tx().to(),
-            TxEnvelope::Eip2930(tx) => tx.tx().to(),
-            TxEnvelope::Eip1559(tx) => tx.tx().to(),
-            TxEnvelope::Eip4844(tx) => tx.tx().to(),
+            TxEnvelope::Legacy(tx) => tx.tx().to().into(),
+            TxEnvelope::Eip2930(tx) => tx.tx().to().into(),
+            TxEnvelope::Eip1559(tx) => tx.tx().to().into(),
+            TxEnvelope::Eip4844(tx) => tx.tx().to().into(),
             _ => todo!(),
         }
     }
@@ -85,10 +85,10 @@ impl ConsensusTx {
 
     pub fn v(&self) -> u64 {
         match &self.0 {
-            TxEnvelope::Legacy(tx) => tx.signature().v().to_u64(),
-            TxEnvelope::Eip2930(tx) => tx.signature().v().to_u64(),
-            TxEnvelope::Eip1559(tx) => tx.signature().v().to_u64(),
-            TxEnvelope::Eip4844(tx) => tx.signature().v().to_u64(),
+            TxEnvelope::Legacy(tx) => tx.signature().v().into(),
+            TxEnvelope::Eip2930(tx) => tx.signature().v().into(),
+            TxEnvelope::Eip1559(tx) => tx.signature().v().into(),
+            TxEnvelope::Eip4844(tx) => tx.signature().v().into(),
             _ => todo!(),
         }
     }
@@ -209,168 +209,77 @@ pub(crate) struct RpcTx(pub Transaction);
 impl TryFrom<RpcTx> for ConsensusTx {
     type Error = EthTrieError;
     fn try_from(tx: RpcTx) -> Result<ConsensusTx, EthTrieError> {
-        let chain_id = tx.chain_id();
-        let nonce: u64 = tx.0.nonce;
-        let gas_limit: u64 = tx.0.gas;
-
-        let value = tx.0.value;
-        let input = tx.0.input.clone();
-        match &tx.version()? {
-            TxType::Legacy => {
-                let to = tx.to();
-                let gas_price: u128 = tx.0.gas_price.unwrap_or_default();
-
-                let res = TxLegacy {
-                    chain_id,
-                    nonce,
-                    gas_price,
-                    gas_limit,
-                    to,
-                    value,
-                    input,
-                };
-                Ok(ConsensusTx(res.into_signed(tx.signature()?).into()))
-            }
-            TxType::Eip2930 => {
-                let to = tx.to();
-                let gas_price: u128 = tx.0.gas_price.unwrap_or_default();
-
-                let res = TxEip2930 {
-                    chain_id: chain_id.unwrap(),
-                    nonce,
-                    gas_price,
-                    gas_limit,
-                    to,
-                    value,
-                    input,
-                    access_list: tx.access_list()?,
-                };
-                Ok(ConsensusTx(res.into_signed(tx.signature()?).into()))
-            }
-            TxType::Eip1559 => {
-                let to = tx.to();
-                let max_fee_per_gas = tx.max_fee_per_gas()?;
-                let max_priority_fee_per_gas = tx.max_priority_fee_per_gas()?;
-                let res = TxEip1559 {
-                    chain_id: chain_id.unwrap(),
-                    nonce,
-                    gas_limit,
-                    to,
-                    value,
-                    input,
-                    access_list: tx.access_list()?,
-                    max_fee_per_gas,
-                    max_priority_fee_per_gas,
-                };
-                Ok(ConsensusTx(res.into_signed(tx.signature()?).into()))
-            }
-            TxType::Eip4844 => {
-                let to = match tx.to() {
-                    TxKind::Call(to) => to,
-                    TxKind::Create => return Err(EthTrieError::InvalidTxVersion),
-                };
-                let blob_versioned_hashes = tx
-                    .clone()
-                    .0
-                    .blob_versioned_hashes
-                    .ok_or(EthTrieError::ConversionError(Field::Input))?;
-                let max_fee_per_gas = tx.max_fee_per_gas()?;
-                let max_priority_fee_per_gas = tx.max_priority_fee_per_gas()?;
-                let max_fee_per_blob_gas = tx.max_fee_per_blob_gas()?;
-
-                let res = TxEip4844 {
-                    chain_id: chain_id.unwrap(),
-                    nonce,
-                    gas_limit,
-                    to,
-                    value,
-                    input,
-                    access_list: tx.access_list()?,
-                    max_fee_per_gas,
-                    max_priority_fee_per_gas,
-                    max_fee_per_blob_gas,
-                    blob_versioned_hashes,
-                };
-                Ok(ConsensusTx(res.into_signed(tx.signature()?).into()))
-            }
-            TxType::Eip7702 => todo!(),
-        }
+        let envelope: TxEnvelope = tx.0.into_inner().into();
+        Ok(ConsensusTx(envelope))
     }
 }
 
-impl RpcTx {
-    fn chain_id(&self) -> Option<u64> {
-        self.0.chain_id
-    }
+// impl RpcTx {
+//     fn chain_id(&self) -> Option<u64> {
+//         self.0.chain_id()
+//     }
 
-    fn to(&self) -> TxKind {
-        match self.0.to {
-            Some(to) => TxKind::Call(to),
-            None => TxKind::Create,
-        }
-    }
+//     fn to(&self) -> TxKind {
+//         match self.0.to() {
+//             Some(to) => TxKind::Call(to),
+//             None => TxKind::Create,
+//         }
+//     }
 
-    fn version(&self) -> Result<TxType, EthTrieError> {
-        match self.0.transaction_type {
-            Some(0) => Ok(TxType::Legacy),
-            Some(1) => Ok(TxType::Eip2930),
-            Some(2) => Ok(TxType::Eip1559),
-            Some(3) => Ok(TxType::Eip4844),
-            None => Ok(TxType::Legacy),
-            _ => Err(EthTrieError::InvalidTxVersion),
-        }
-    }
+//     fn version(&self) -> Result<TxType, EthTrieError> {
+//         self.0.tx_type()
+//     }
 
-    fn max_fee_per_gas(&self) -> Result<u128, EthTrieError> {
-        if let Some(value) = self.0.max_fee_per_gas {
-            Ok(value)
-        } else {
-            Ok(0)
-        }
-    }
+//     fn max_fee_per_gas(&self) -> Result<u128, EthTrieError> {
+//         if let Some(value) = self.0.max_fee_per_gas {
+//             Ok(value)
+//         } else {
+//             Ok(0)
+//         }
+//     }
 
-    fn max_priority_fee_per_gas(&self) -> Result<u128, EthTrieError> {
-        if let Some(value) = self.0.max_priority_fee_per_gas {
-            Ok(value)
-        } else {
-            Ok(0)
-        }
-    }
+//     fn max_priority_fee_per_gas(&self) -> Result<u128, EthTrieError> {
+//         if let Some(value) = self.0.max_priority_fee_per_gas {
+//             Ok(value)
+//         } else {
+//             Ok(0)
+//         }
+//     }
 
-    fn max_fee_per_blob_gas(&self) -> Result<u128, EthTrieError> {
-        if let Some(value) = self.0.max_fee_per_blob_gas {
-            Ok(value)
-        } else {
-            Ok(0)
-        }
-    }
+//     fn max_fee_per_blob_gas(&self) -> Result<u128, EthTrieError> {
+//         if let Some(value) = self.0.max_fee_per_blob_gas {
+//             Ok(value)
+//         } else {
+//             Ok(0)
+//         }
+//     }
 
-    fn signature(&self) -> Result<Signature, EthTrieError> {
-        if let Some(signature) = self.0.signature {
-            let sig = Signature::from_rs_and_parity(
-                signature.r,
-                signature.s,
-                Parity::Eip155(
-                    signature
-                        .v
-                        .try_into()
-                        .map_err(|_| EthTrieError::ConversionError(Field::Signature))?,
-                ),
-            )
-            .map_err(|_| EthTrieError::ConversionError(Field::Signature))?;
+//     fn signature(&self) -> Result<Signature, EthTrieError> {
+//         if let Some(signature) = self.0.signature {
+//             let sig = Signature::from_rs_and_parity(
+//                 signature.r,
+//                 signature.s,
+//                 Parity::Eip155(
+//                     signature
+//                         .v
+//                         .try_into()
+//                         .map_err(|_| EthTrieError::ConversionError(Field::Signature))?,
+//                 ),
+//             )
+//             .map_err(|_| EthTrieError::ConversionError(Field::Signature))?;
 
-            Ok(sig)
-        } else {
-            Err(EthTrieError::ConversionError(Field::Signature))
-        }
-    }
+//             Ok(sig)
+//         } else {
+//             Err(EthTrieError::ConversionError(Field::Signature))
+//         }
+//     }
 
-    fn access_list(&self) -> Result<AccessList, EthTrieError> {
-        if let Some(al) = self.0.access_list.clone() {
-            let target_list_items: Vec<AccessListItem> = Vec::<AccessListItem>::from(al);
-            Ok(AccessList(target_list_items))
-        } else {
-            Err(EthTrieError::ConversionError(Field::AccessList))
-        }
-    }
-}
+//     fn access_list(&self) -> Result<AccessList, EthTrieError> {
+//         if let Some(al) = self.0.access_list.clone() {
+//             let target_list_items: Vec<AccessListItem> = Vec::<AccessListItem>::from(al);
+//             Ok(AccessList(target_list_items))
+//         } else {
+//             Err(EthTrieError::ConversionError(Field::AccessList))
+//         }
+//     }
+// }
